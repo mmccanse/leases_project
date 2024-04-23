@@ -49,6 +49,41 @@ def load_pdfs_from_directory(directory):
     return texts
     
 
+    
+# Initialize the text splitter. Using this to better manage inputs and outputs as responses may have more
+# tokens than the max
+
+
+
+def split_and_query_text(crc, text, question):
+    #split text into manageable parts
+    chunks = text_splitter.split_text(text)
+    
+    #process each part with the conversational retrieval chain (CRC)
+    for part in parts:
+        response = crc.run({
+            'question': question,
+            'chat_history': [{'text': part}]
+        })
+        if response:
+            return response
+    return "No relevant information found"
+            
+
+def setup_vector_store(documents):
+    embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    chunks = text_splitter.split_documents(documents)
+    vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
+
+def initialize_crc(vector_store):
+    llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=0)
+    retriever = vector_store.as_retriever()
+    crc = ConversationalRetrievalChain.from_llm(llm, retriever)
+    return crc
+
+
+
 
 def main():
     st.title('ASC 842 AI Assistant')
