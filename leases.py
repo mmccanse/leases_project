@@ -7,12 +7,13 @@ import fitz  # PyMuPDF
 import os
 from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 from dotenv import load_dotenv
+
 
 
 # Set the model name for LLM
@@ -47,20 +48,20 @@ def load_pdfs_from_directory(directory):
             texts[filename] = text
     return texts
     
-    
-# Initialize the text splitter. Using this to better manage inputs and outputs as responses may have more
-# tokens than the max
 
+#Global definitions for text splitter and embeddings
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
 
 def split_and_query_text(crc, text, question):
     #split text into manageable parts
     chunks = text_splitter.split_text(text)
     
     #process each part with the conversational retrieval chain (CRC)
-    for part in parts:
+    for chunk in chunks:
         response = crc.run({
             'question': question,
-            'chat_history': [{'text': part}]
+            'chat_history': [{'text': chunk}]
         })
         if response:
             return response
@@ -68,8 +69,6 @@ def split_and_query_text(crc, text, question):
             
 
 def setup_vector_store(documents):
-    embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(documents)
     vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
     return vector_store
