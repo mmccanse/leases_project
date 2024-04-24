@@ -47,7 +47,7 @@ def extract_text_from_text_file(file_path):
 def extract_text_from_pdf_file(file_path):
     try:
         with open(file_path, 'rb') as file:
-            reader = PyPDF2.PdfFileReader(file)
+            reader = PyPDF2.PdfReader(file)
             text = ''
             for page in range(reader.numPages):
                 page_obj = reader.getPage(page)
