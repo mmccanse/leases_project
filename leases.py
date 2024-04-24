@@ -5,11 +5,10 @@
 import streamlit as st
 import fitz  # PyMuPDF
 import os
-from langchain import OpenAI 
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma 
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
@@ -48,11 +47,9 @@ def load_pdfs_from_directory(directory):
             texts[filename] = text
     return texts
     
-
     
 # Initialize the text splitter. Using this to better manage inputs and outputs as responses may have more
 # tokens than the max
-
 
 
 def split_and_query_text(crc, text, question):
@@ -75,13 +72,14 @@ def setup_vector_store(documents):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(documents)
     vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
+    return vector_store
 
 
 
 def create_examples():
     examples = [
         {
-            "query": "How do I determine the different lease components?"
+            "query": "How do I determine the different lease components?",
             "answer": """Lease components are elements of the arrangement that provide the customer with the right to use an 
             identified asset. An entity should consider the right to use an underlying asset to be a separate lease component 
             if the following 2 conditions are met: 1. Lessee can benefit from the ROU asset either on its own or together with 
@@ -90,7 +88,7 @@ def create_examples():
             EY - Financial Reporting Developments: lease accounting, p.27-30"""
         },
         {
-            "query": "I am a lessor, how do I account for lease modifications?"
+            "query": "I am a lessor, how do I account for lease modifications?",
             "answer": """Several questions must be answered to determine how to appropriately account for lease modifications for 
             a lessor. Is the modified contract a lease, or does it contain a lease? If yes, does the modification result in a 
             separate contract? If yes, account for two separate contracts: the unmodified original contract, and a separate 
@@ -102,6 +100,8 @@ def create_examples():
             KPMG - Leases Handbook, section 7.6"""
         }
     ]
+
+    return examples
 
 def setup_prompt_template(examples):
     template = FewShotPromptTemplate(
