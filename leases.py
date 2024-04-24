@@ -130,30 +130,35 @@ def initialize_crc(vector_store, prompt_template):
 # define streamlit app
 def main():
     st.title('ASC 842 AI Assistant')
-    question = st.text_input("Ask a question about lease accounting:")
+    examples = create_examples()
+    prompt_template = setup_prompt_template(examples)
     
-    # Load and prepare documents
-    if 'documents' not in st.session_state:
-        pdf_texts = load_pdfs_from_directory('pdfs')
-        documents = [text for _, text in pdf_texts.items()]
-        st.session_state.documents = documents
-        vector_store = setup_vector_store(documents)
-        crc = initialize_crc(vector_store)
-        st.session_state.crc = crc
-    
-    if question and 'crc' in st.session_state:
-        crc = st.session_state.crc
-        #add history management
-        if 'history' not in st.session_state:
-            st.session_state['history'] = []
+    try:
+        # Load and prepare documents
+        if 'documents' not in st.session_state:
+            pdf_texts = load_pdfs_from_directory('pdfs')
+            documents = [text for _, text in pdf_texts.items()]
+            st.session_state.documents = documents
+            vector_store = setup_vector_store(documents)
+            crc = initialize_crc(vector_store, prompt_template)
+            st.session_state.crc = crc
         
-        response = crc.run({'question': question, 'chat_history': st.session_state['history']})
-        st.session_state['history'].append((question, response))
-        st.write(response)
-        
-    for prompts in st.session_state['history']:
-        st.write("Question: " + prompts[0])
-        st.write("Answer: " + prompts[1])
+        question = st.text_input("Ask a question about lease accounting:")
+        if question and 'crc' in st.session_state:
+            crc = st.session_state.crc
+            #add history management
+            if 'history' not in st.session_state:
+                st.session_state['history'] = []
+            
+            response = crc.run({'query': question, 'chat_history': st.session_state['history']})
+            st.session_state['history'].append((question, response))
+            st.write(response)
+            
+        for prompts in st.session_state['history']:
+            st.write("Question: " + prompts[0])
+            st.write("Answer: " + prompts[1])
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")    
         
 if __name__ == "__main__":
     main()
