@@ -23,6 +23,9 @@ from dotenv import load_dotenv
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+#Initialize history before it is accessed
+if 'history' not in st.session_state:
+    st.session_state['history'] = []
 
 
 # Set the model name for LLM
