@@ -19,6 +19,6 @@ if uploaded_file is not None:
     chunks = chunk_document(file_content)
     
     st.write(f"Document has been chunked into {len(chunks)} parts.")
-    st.write("first chunk content:")
-    st.write(chunks[0])
+    st.write("21st chunk content:")
+    st.write(chunks[20])
 
