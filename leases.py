@@ -13,6 +13,8 @@ from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 from dotenv import load_dotenv
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -29,11 +31,15 @@ def clear_history():
 
 # Define PDF extraction function, handles 1 PDF at a time
 def extract_text_from_pdf(file_path):
-    with fitz.open(file_path)as doc:
-        text = ""
-        for page in doc:
-            text += page.get_text()
+    try:
+        with fitz.open(file_path)as doc:
+            text = ""
+            for page in doc:
+                text += page.get_text()
         return text
+    except Exception as e:
+        logging.error(f"Failed to extract text from {file_path}: {str(e)}")
+        return None
 
 # Define a directory processing function that reads through the folder where PDFs are saved, checks for 
 # PDF files and uses extraction function to extract text from each.
@@ -45,7 +51,8 @@ def load_pdfs_from_directory(directory):
         if filename.endswith('.pdf'):
             file_path = os.path.join(directory, filename)
             text = extract_text_from_pdf(file_path)
-            texts[filename] = text
+            if text is not None:
+                texts[filename] = text
     return texts
     
 
@@ -69,6 +76,9 @@ def split_and_query_text(crc, text, question):
             
 
 def setup_vector_store(documents):
+    #ensure documents is a list of strings
+    if not all(isinstance(doc, str) for doc in documents):
+        logging.error("Documents for vector store setup are not all strings.")
     chunks = text_splitter.split_documents(documents)
     vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
     return vector_store
