@@ -8,9 +8,7 @@
 # Imports
 import streamlit as st
 from langchain_community.document_loaders import PyPDFLoader
-# import fitz  # PyMuPDF
 import PyPDF2
-import Crypto
 import os
 from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
@@ -45,52 +43,72 @@ def extract_text_from_text_file(file_path):
     except Exception as e:
         logging.error(f"Failed to read text from {file_path}: {str(e)}")
         return None
+# Define text extraction from PDF file
+def extract_text_from_pdf_file(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            reader = PyPDF2.PdfFileReader(file)
+            text = ''
+            for page in range(reader.numPages):
+                page_obj = reader.getPage(page)
+                text += page_obj.extractText()
+            return text
+    except Exception as e:
+        logging.error(f"Failed to read text from {file_path}: {str(e)}")
+        return None
 
 #Define function to load text files from a directory:
 def load_files_from_directory(directory):
-    texts = []
+    documents = []
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if filename.endswith('.txt'):
             text = extract_text_from_text_file(file_path)
-            if text is not None:
-                texts.append(text)
         elif filename.endswith('.pdf'):
-            pdf_reader = PyPDF2.PdfReader(open(file_path, 'rb'))
-            text = ''
-            for page in pdf_reader.pages:
-                text += page.extract_text()
-            texts.append(text)
-    return texts
+            text = extract_text_from_pdf_file(file_path)
+        else:
+            continue
+        documents.append(text)
+    return documents
 
 
-#Global definitions for text splitter and embeddings
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
+# #Global definitions for text splitter and embeddings
+# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+# embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
 
-def split_and_query_text(crc, text, question):
-    #split text into manageable parts
-    chunks = text_splitter.split_text(text)
+# def split_and_query_text(crc, text, question):
+#     #split text into manageable parts
+#     chunks = text_splitter.split_text(text)
     
-    #process each part with the conversational retrieval chain (CRC)
-    for chunk in chunks:
-        response = crc.run({
-            'question': question,
-            'chat_history': [{'text': chunk}]
-        })
-        if response:
-            return response
-    return "No relevant information found"
+#     #process each part with the conversational retrieval chain (CRC)
+#     for chunk in chunks:
+#         response = crc.run({
+#             'question': question,
+#             'chat_history': [{'text': chunk}]
+#         })
+#         if response:
+#             return response
+#     return "No relevant information found"
             
 
-def setup_vector_store(documents):
-    #ensure documents is a list of strings
-    if not all(isinstance(doc, str) for doc in documents):
-        logging.error("Documents for vector store setup are not all strings.")
-    chunks = text_splitter.split_documents(documents)
-    vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
-    return vector_store
+# def setup_vector_store(documents):
+#     #ensure documents is a list of strings
+#     if not all(isinstance(doc, str) for doc in documents):
+#         logging.error("Documents for vector store setup are not all strings.")
+#     chunks = text_splitter.split_documents(documents)
+#     vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
+#     return vector_store
 
+def setup_vector_store(documents):
+    embeddings = OpenAIEmbeddings(openai_api_key)
+    vector_store = Chroma(
+        documents,
+        embeddings,
+        chunk_size=1000,
+        chunk_overlap=200,
+        use_cache=False,
+    )
+    return vector_store
 
 
 def create_examples():
@@ -144,14 +162,65 @@ def initialize_crc(vector_store, prompt_template):
     crc = ConversationalRetrievalChain(llm=llm, retriever=retriever, prompt_template=prompt_template)
     return crc
 
-#Initialize history before it is accessed
-if 'history' not in st.session_state:
-    st.session_state['history'] = []
+# #Initialize history before it is accessed
+# if 'history' not in st.session_state:
+#     st.session_state['history'] = []
 
 # define streamlit app
+# def main():
+#     if 'history' not in st.session_state:
+#         st.session_state['history']=[]
+    
+#     st.title('ASC 842 AI Assistant')
+#     examples = create_examples()
+#     prompt_template = setup_prompt_template(examples)
+    
+#     try:
+#         # Load and prepare documents
+#         st.session_state.documents = load_files_from_directory('PDFS_and_TXT')
+#         if 'documents' not in st.session_state:
+#             vector_store = setup_vector_store(st.session_state.documents)
+#             crc = initialize_crc(vector_store, prompt_template)
+#             st.session_state.crc = crc
+            
+#         question = st.text_input("Ask a question about lease accounting:")
+#         if question and 'crc' in st.session_state:
+#             crc = st.session_state.crc
+#             # Display a spinner while processing the question
+#             with st.spinner("Searching the guidance..."):
+#                 response = crc.run({'query': question, 'chat_history': st.session_state['history']})
+#                 st.write("appending question and response to history")
+#                 print("Question:", question)
+#                 print("Response:", response)
+#                 st.session_state['history'].append((question, response))
+#                 print("appended successfully")
+#                 st.write(response)
+                
+#         if question:
+#             #add debugging statements
+#             print("Chat history:", st.session_state['history'])
+#             print("Question:", question)
+#             #add history management
+#             # if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
+#             #     st.session_state['history'] = []
+            
+#         for prompts in st.session_state['history']:
+#             st.write("Question: " + prompts[0])
+#             st.write("Answer: " + prompts[1])
+        
+#     except Exception as e:
+#         #add debugging statement
+#         print("Error:", e)
+#         st.error(f"An error occurred: {str(e)}")    
+        
+# if __name__ == "__main__":
+#     main()
+
+
+# Define streamlit app
 def main():
     if 'history' not in st.session_state:
-        st.session_state['history']=[]
+        st.session_state['history'] = []
     
     st.title('ASC 842 AI Assistant')
     examples = create_examples()
@@ -159,43 +228,28 @@ def main():
     
     try:
         # Load and prepare documents
-        st.session_state.documents = load_files_from_directory('PDFS_and_TXT')
-        if 'documents' not in st.session_state:
-            vector_store = setup_vector_store(st.session_state.documents)
-            crc = initialize_crc(vector_store, prompt_template)
-            st.session_state.crc = crc
-            
+        documents = load_files_from_directory('PDFS_and_TXT')
+        vector_store = setup_vector_store(documents)
+        crc = initialize_crc(vector_store, prompt_template)
+        st.session_state.crc = crc
+        
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
             crc = st.session_state.crc
-            # Display a spinner while processing the question
-            with st.spinner("Searching the guidance..."):
+            with st.spinner("Searching for the answer..."):
                 response = crc.run({'query': question, 'chat_history': st.session_state['history']})
-                print("appending question and response to history")
-                print("Question:", question)
-                print("Response:", response)
                 st.session_state['history'].append((question, response))
-                print("appended successfully")
                 st.write(response)
                 
         if question:
-            #add debugging statements
-            print("Chat history:", st.session_state['history'])
-            print("Question:", question)
-            #add history management
-            # if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
-            #     st.session_state['history'] = []
-            
-        for prompts in st.session_state['history']:
-            st.write("Question: " + prompts[0])
-            st.write("Answer: " + prompts[1])
+            st.write("Chat history:")
+            for prompts in st.session_state['history']:
+                st.write("Question: " + prompts[0])
+                st.write("Answer: " + prompts[1])
         
     except Exception as e:
-        #add debugging statement
-        print("Error:", e)
-        st.error(f"An error occurred: {str(e)}")    
-        
+        logging.error(f"An error occurred: {str(e)}")
+        st.error(f"An error occurred: {str(e)}")
+
 if __name__ == "__main__":
     main()
-
-
