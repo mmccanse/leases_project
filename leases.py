@@ -84,8 +84,8 @@ def create_examples():
             identified asset. An entity should consider the right to use an underlying asset to be a separate lease component 
             if the following 2 conditions are met: 1. Lessee can benefit from the ROU asset either on its own or together with 
             other readily available resources and 2. The ROU is neither highly dependent on; nor highly interrelated with the 
-            other ROU(s) in the contract. References: KPMG - leases handbook p.151-154, PWC - leases guide, p. 46-47, 
-            EY - Financial Reporting Developments: lease accounting, p.27-30"""
+            other ROU(s) in the contract. References: KPMG-leaseshandbook section 4.1, PWC-leasesguide0124, section 2.4, 
+            EY-financial-reporting-developments-lease-accounting, section 1.4"""
         },
         {
             "query": "I am a lessor, how do I account for lease modifications?",
