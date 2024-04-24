@@ -182,10 +182,6 @@ def initialize_crc(vector_store, prompt_template):
 if 'history' not in st.session_state:
     st.session_state['history'] = []
 
-for prompts in st.session_state['history']:
-    st.write("Question: " + prompts[0])
-    st.write("Answer: " + prompts[1])
-
 # define streamlit app
 def main():
     if 'history' not in st.session_state:
@@ -229,10 +225,10 @@ def main():
             #add history management
             # if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
             #     st.session_state['history'] = []
-                
-        for entry in st.session_state['history']:
-            st.write("Question:", entry[0])
-            st.write("Answer:", entry[1]) 
+            
+        for prompts in st.session_state['history']:
+            st.write("Question: " + prompts[0])
+            st.write("Answer: " + prompts[1])
         
     except Exception as e:
         #add debugging statement
