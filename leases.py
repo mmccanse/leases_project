@@ -24,10 +24,6 @@ from time import sleep
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-#Initialize history before it is accessed
-if 'history' not in st.session_state:
-    st.session_state['history'] = []
-
 
 # Set the model name for LLM
 OPENAI_MODEL = "gpt-3.5-turbo"
@@ -182,6 +178,14 @@ def initialize_crc(vector_store, prompt_template):
     crc = ConversationalRetrievalChain(llm=llm, retriever=retriever, prompt_template=prompt_template)
     return crc
 
+#Initialize history before it is accessed
+if 'history' not in st.session_state:
+    st.session_state['history'] = []
+
+for prompts in st.session_state['history']:
+    st.write("Question: " + prompts[0])
+    st.write("Answer: " + prompts[1])
+
 # define streamlit app
 def main():
     st.title('ASC 842 AI Assistant')
@@ -200,13 +204,20 @@ def main():
             crc = initialize_crc(vector_store, prompt_template)
             st.session_state.crc = crc
         
+        if 'history' not in st.session_state:
+            st.session_state['history']=[]
+        
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
             crc = st.session_state.crc
             # Display a spinner while processing the question
             with st.spinner("Searching for the answer..."):
                 response = crc.run({'query': question, 'chat_history': st.session_state['history']})
+                print("appending question and response to history")
+                print("Question:", question)
+                print("Response:", response)
                 st.session_state['history'].append((question, response))
+                print("appended successfully")
                 st.write(response)
                 
         if question:
@@ -214,16 +225,14 @@ def main():
             print("Chat history:", st.session_state['history'])
             print("Question:", question)
             #add history management
-            if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
-                st.session_state['history'] = []
+            # if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
+            #     st.session_state['history'] = []
                 
             
         #Display the history of questions and answers
         #add debugging statements
         print("History:", st.session_state['history'])    
-        for prompts in st.session_state['history']:
-            st.write("Question: " + prompts[0])
-            st.write("Answer: " + prompts[1])
+        
     except Exception as e:
         #add debugging statement
         print("Error:", e)
