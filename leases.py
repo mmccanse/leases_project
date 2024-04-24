@@ -49,7 +49,7 @@ def extract_text_from_pdf_file(file_path):
         with open(file_path, 'rb') as file:
             reader = PyPDF2.PdfReader(file)
             text = ''
-            for page in range(reader.numPages):
+            for page in range(len(reader.pages )):
                 page_obj = reader.getPage(page)
                 text += page_obj.extractText()
             return text
