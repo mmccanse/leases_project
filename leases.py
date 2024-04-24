@@ -188,6 +188,9 @@ for prompts in st.session_state['history']:
 
 # define streamlit app
 def main():
+    if 'history' not in st.session_state:
+        st.session_state['history']=[]
+    
     st.title('ASC 842 AI Assistant')
     examples = create_examples()
     prompt_template = setup_prompt_template(examples)
@@ -204,8 +207,7 @@ def main():
             crc = initialize_crc(vector_store, prompt_template)
             st.session_state.crc = crc
         
-        if 'history' not in st.session_state:
-            st.session_state['history']=[]
+        
         
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
@@ -228,10 +230,9 @@ def main():
             # if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
             #     st.session_state['history'] = []
                 
-            
-        #Display the history of questions and answers
-        #add debugging statements
-        print("History:", st.session_state['history'])    
+        for entry in st.session_state['history']:
+            st.write("Question:", entry[0])
+            st.write("Answer:", entry[1]) 
         
     except Exception as e:
         #add debugging statement
