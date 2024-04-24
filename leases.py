@@ -20,6 +20,7 @@ from langchain.chains import RetrievalQA
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 from dotenv import load_dotenv
+from time import sleep
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -202,17 +203,22 @@ def main():
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
             crc = st.session_state.crc
+            # Display a spinner while processing the question
+            with st.spinner("Searching for the answer..."):
+                response = crc.run({'query': question, 'chat_history': st.session_state['history']})
+                st.session_state['history'].append((question, response))
+                st.write(response)
+                
+        if question:
             #add debugging statements
             print("Chat history:", st.session_state['history'])
             print("Question:", question)
             #add history management
             if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
                 st.session_state['history'] = []
+                
             
-            response = crc.run({'query': question, 'chat_history': st.session_state['history']})
-            st.session_state['history'].append((question, response))
-            st.write(response)
-            
+        #Display the history of questions and answers
         #add debugging statements
         print("History:", st.session_state['history'])    
         for prompts in st.session_state['history']:
