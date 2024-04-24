@@ -28,6 +28,8 @@ def clear_history():
         del st.session_state['history']
 
 st.title('ASC 842 AI Assistant')
+st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases.')
+st.divider('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
 
 
 # Define text extraction from txt file
@@ -40,15 +42,32 @@ def extract_text_from_text_file(file_path):
         logging.error(f"Failed to read text from {file_path}: {str(e)}")
         return None
 
+# Define text extraction from PDF file
+def extract_text_from_pdf_file(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ''
+            for page in range(len(reader.pages )):
+                page_obj = reader.getPage(page)
+                text += page_obj.extractText()
+            return text
+    except Exception as e:
+        logging.error(f"Failed to read text from {file_path}: {str(e)}")
+        return None
+    
 #Define function to load text files from a directory:
-def load_text_files_from_directory(directory):
-    texts = {}
+def load_files_from_directory(directory):
+    texts = []
     for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
         if filename.endswith('.pdf'):
-            file_path = os.path.join(directory, filename)
+            text = extract_text_from_pdf_file(file_path)
+        elif filename.endswith('.txt'):
             text = extract_text_from_text_file(file_path)
-            if text is not None:
-                texts[filename] = text
+        else:
+            continue
+        texts.append(text)
     return texts
 
 # Define PDF extraction function, handles 1 PDF at a time
