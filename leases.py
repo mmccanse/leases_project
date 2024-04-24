@@ -1,9 +1,12 @@
 
 # pip install PyMuPDF
 
+
 # Imports
 import streamlit as st
-import fitz  # PyMuPDF
+from langchain.document_loaders import PyPDFLoader
+# import fitz  # PyMuPDF
+import PyPDF2
 import os
 from langchain_community.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
@@ -32,10 +35,24 @@ def clear_history():
 # Define PDF extraction function, handles 1 PDF at a time
 def extract_text_from_pdf(file_path):
     try:
-        with fitz.open(file_path)as doc:
-            text = ""
-            for page in doc:
-                text += page.get_text()
+        text = ""
+        # Open the PDF file
+        with open(file_path, "rb") as file:
+            # create PDF reader object
+            pdf_reader = PyPDF2.PdfReader(file)
+            #iterate through each page and extract text
+            if pdf_reader.is_encrypted:
+                #attempt to decrypt it
+                try:
+                    pdf_reader.decrypt('')
+                except Exception as e:
+                    logging.error(f"Failed to decrypt {file_path}: {str(e)}")
+                    return None
+            #Extract text from each page
+            for page in pdf_reader.pages:
+                extracted_text = page.extract_text()
+                if extracted_text:
+                    text += extracted_text
         return text
     except Exception as e:
         logging.error(f"Failed to extract text from {file_path}: {str(e)}")
