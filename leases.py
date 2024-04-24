@@ -199,6 +199,10 @@ def main():
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
             crc = st.session_state.crc
+            #add debugging statement
+            print("Chat history:", st.session_state['history'])
+            #add debugging statement
+            print("Question:", question)
             #add history management
             if 'history' not in st.session_state:
                 st.session_state['history'] = []
@@ -211,6 +215,8 @@ def main():
             st.write("Question: " + prompts[0])
             st.write("Answer: " + prompts[1])
     except Exception as e:
+        #add debugging statement
+        print("Error:", e)
         st.error(f"An error occurred: {str(e)}")    
         
 if __name__ == "__main__":
