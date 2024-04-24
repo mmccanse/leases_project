@@ -199,18 +199,19 @@ def main():
         question = st.text_input("Ask a question about lease accounting:")
         if question and 'crc' in st.session_state:
             crc = st.session_state.crc
-            #add debugging statement
+            #add debugging statements
             print("Chat history:", st.session_state['history'])
-            #add debugging statement
             print("Question:", question)
             #add history management
-            if 'history' not in st.session_state:
+            if 'history' not in st.session_state or not isinstance(st.session_state['history'], list):
                 st.session_state['history'] = []
             
             response = crc.run({'query': question, 'chat_history': st.session_state['history']})
             st.session_state['history'].append((question, response))
             st.write(response)
             
+        #add debugging statements
+        print("History:", st.session_state['history'])    
         for prompts in st.session_state['history']:
             st.write("Question: " + prompts[0])
             st.write("Answer: " + prompts[1])
