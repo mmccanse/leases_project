@@ -11,11 +11,12 @@ import streamlit as st
 import PyPDF2
 from langchain import OpenAI 
 from langchain.chat_models import ChatOpenAI
-from langchain.text_splitter import RecursiveCharacterTextSplitter 
+# from langchain.text_splitter import RecursiveCharacterTextSplitter 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma 
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
+from langchain.text_splitter import RecursiveSentenceTextSplitter
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -94,21 +95,33 @@ def extract_text_from_pdf_file(file_path):
 #Define function to load text files from a directory:
 def load_files_from_directory(directory):
     loaded = []
+    processed_files = set()
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
+        if filename.endswith('.pdf') or filename.endswith('.txt'):
+            if file_path not in processed_files:
+                processed_files.add(file_path)
         if filename.endswith('.pdf'):
-            text = extract_text_from_pdf_file(file_path)
+            text = ''
+            with open(file_path, 'rb') as file:
+                reader = PyPDF2.PdfReader(file)
+                for page in range(len(reader.pages)):
+                    page_obj = reader.pages[page]
+                    text += page_obj.extract_text().strip('[]')
+            loaded.append(text)
+            
         elif filename.endswith('.txt'):
             text = extract_text_from_text_file(file_path)
+            loaded.append(text)
         else:
             continue
-        loaded.append(text)
+        
     return loaded
 
     
 
 #Global definitions for text splitter and embeddings
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+text_splitter = RecursiveSentenceTextSplitter()
 embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
 
 def split_and_query_text(crc, text, question):
@@ -137,8 +150,12 @@ def split_and_query_text(crc, text, question):
 #     return vector_store
 
 def setup_vector_store(documents):
-    print("Documents:", documents)
+    # print("Documents:", documents)
     print("Type of documents:", type(documents))
+    for doc in documents:
+        print("Document:", doc)
+        print("Type of document:", type(doc))
+    documents = [item for sublist in documents for item in sublist]  #this is to flatten the lists, as multiple lists were created within the content.
     chunks = [text_splitter.split_text(doc) for doc in documents]
     print("Chunks:", chunks)
     print("Type of chunks:", type(chunks))
