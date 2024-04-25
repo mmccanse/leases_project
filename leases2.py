@@ -40,46 +40,55 @@ st.divider()
 
 
 # Define text extraction from txt file
-def extract_text_from_text_file(directory):
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        if filename.endswith('.txt'):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    text = file.read()
-                return text
-            except Exception as e:
-                logging.error(f"Failed to read text from {file_path}: {str(e)}")
-                return None
+def extract_text_from_text_file(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            text = file.read()
+        return text
+    except Exception as e:
+        logging.error(f"Failed to read text from {file_path}: {str(e)}")
+        return None
 
 
 
 
 # Define text extraction from PDF file
-def extract_text_from_pdf_file(directory):
-    texts = []
-    pdf_files = []
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        if filename.endswith('.pdf'):
-            try:
-                with open(file_path, 'rb') as file:
-                    reader = PyPDF2.PdfReader(file)
-                    text = ''
-                    for page in range(len(reader.pages )):
-                        page_obj = reader.pages[page]
-                        text += page_obj.extract_text()
-                    texts.append(text)
-                    pdf_files.append(filename)
-            except Exception as e:
-                logging.error(f"Failed to read text from {file_path}: {str(e)}")
-                return None
-    print("PDF files extracted")
-    for pdf in pdf_files:
-        print(pdf)
+# def extract_text_from_pdf_file(file_path):
+#     texts = []
+#     pdf_files = []
+#     for filename in os.listdir(directory):
+#         file_path = os.path.join(directory, filename)
+#         if filename.endswith('.pdf'):
+#             try:
+#                 with open(file_path, 'rb') as file:
+#                     reader = PyPDF2.PdfReader(file)
+#                     text = ''
+#                     for page in range(len(reader.pages)):
+#                         page_obj = reader.pages[page]
+#                         text += page_obj.extract_text()
+#                     texts.append(text)
+#                     pdf_files.append(filename)
+#             except Exception as e:
+#                 logging.error(f"Failed to read text from {file_path}: {str(e)}")
+#                 return None
+#     print("PDF files extracted")
+#     for pdf in pdf_files:
+#         print(pdf)
         
-    return texts
+#     return texts
 
+def extract_text_from_pdf_file(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ''
+            for page in range(len(reader.pages)):
+                page_obj = reader.pages[page]
+                text += page_obj.extract_text()
+            return text
+    except Exception as e:
+        logging.error(f"Failed to read text from {file_path}: {str(e)}")
+        return None
 
     
 #Define function to load text files from a directory:
@@ -88,9 +97,9 @@ def load_files_from_directory(directory):
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if filename.endswith('.pdf'):
-            text = extract_text_from_pdf_file(directory)
+            text = extract_text_from_pdf_file(file_path)
         elif filename.endswith('.txt'):
-            text = extract_text_from_text_file(directory)
+            text = extract_text_from_text_file(file_path)
         else:
             continue
         loaded.append(text)
@@ -196,8 +205,7 @@ def main():
         if 'documents' not in st.session_state:
             text_files = load_files_from_directory('PDFs_and_TXT')
             # pdf_texts = load_pdfs_from_directory('pdfs')
-            documents = [text for _, text in text_files.items()]
-            # documents = [text for _, text in pdf_texts.items()]
+            documents = [text for text in text_files.items()]
             st.session_state.documents = documents
             vector_store = setup_vector_store(documents)
             crc = initialize_crc(vector_store, prompt_template)
