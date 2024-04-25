@@ -6,13 +6,19 @@
 
 
 # Imports
+import os
 import streamlit as st
+import PyPDF2
 from langchain import OpenAI 
 from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma 
 from langchain.chains import ConversationalRetrievalChain
+from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 
 # Set the model name for LLM
@@ -188,7 +194,7 @@ def main():
     try:
         # Load and prepare documents
         if 'documents' not in st.session_state:
-            text_files = load_text_files_from_directory('PDFs_and_TXT')
+            text_files = load_files_from_directory('PDFs_and_TXT')
             # pdf_texts = load_pdfs_from_directory('pdfs')
             documents = [text for _, text in text_files.items()]
             # documents = [text for _, text in pdf_texts.items()]
