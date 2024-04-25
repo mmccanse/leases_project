@@ -204,10 +204,8 @@ def main():
         # Load and prepare documents
         if 'documents' not in st.session_state:
             text_files = load_files_from_directory('PDFs_and_TXT')
-            # pdf_texts = load_pdfs_from_directory('pdfs')
-            documents = text_files
-            st.session_state.documents = documents
-            vector_store = setup_vector_store(documents)
+            st.session_state.documents = text_files
+            vector_store = setup_vector_store(text_files)
             crc = initialize_crc(vector_store, prompt_template)
             st.session_state.crc = crc
         
