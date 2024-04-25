@@ -102,7 +102,7 @@ def load_files_from_directory(directory):
             text = extract_text_from_text_file(file_path)
         else:
             continue
-        loaded.append({'page_content': text})
+        loaded.append(text)
     return loaded
 
     
