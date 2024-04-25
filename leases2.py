@@ -84,7 +84,7 @@ def extract_text_from_pdf_file(file_path):
             text = ''
             for page in range(len(reader.pages)):
                 page_obj = reader.pages[page]
-                text += page_obj.extract_text()
+                text += page_obj.extract_text().strip('[]')
             return text
     except Exception as e:
         logging.error(f"Failed to read text from {file_path}: {str(e)}")
@@ -102,7 +102,7 @@ def load_files_from_directory(directory):
             text = extract_text_from_text_file(file_path)
         else:
             continue
-        loaded.extend(text)
+        loaded.append(text)
     return loaded
 
     
@@ -127,13 +127,13 @@ def split_and_query_text(crc, text, question):
             
 
 def setup_vector_store(documents):
-    print("Documents:", documents) 
-    print("Types:", [type(doc) for doc in documents]) 
+    # print("Documents:", documents) 
+    # print("Types:", [type(doc) for doc in documents]) 
     #ensure documents is a list of strings
     if not all(isinstance(doc, str) for doc in documents):
         logging.error("Documents for vector store setup are not all strings.")
-    chunks = text_splitter.split_documents(documents)
-    vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
+    chunks = [text_splitter.split_text(doc) for doc in documents]
+    vector_store = Chroma.from_documents([{ 'text': chunk } for chunk in chunks], embeddings, persist_directory='db')
     return vector_store
 
 
@@ -185,7 +185,7 @@ def setup_prompt_template(examples):
 #initialize Conversational Retrieval Chain
 def initialize_crc(vector_store, prompt_template):
     llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
-    retriever = vector_store.as_retriever()
+    retriever = vector_store.as_retriever(metadata_fields=['metadata'])
     crc = ConversationalRetrievalChain(llm=llm, retriever=retriever, prompt_template=prompt_template)
     return crc
 
@@ -195,9 +195,6 @@ if 'history' not in st.session_state:
 
 # define streamlit app
 def main():
-    if 'history' not in st.session_state:
-        st.session_state['history']=[]
-    
     
     examples = create_examples()
     prompt_template = setup_prompt_template(examples)
@@ -218,7 +215,7 @@ def main():
             crc = st.session_state.crc
             # Display a spinner while processing the question
             with st.spinner("Searching for the answer..."):
-                response = crc.run({'query': question, 'chat_history': st.session_state['history']})
+                response = crc.run({'query': question, 'chat_history': st.session_state['history'], 'metadata': True})
                 print("appending question and response to history")
                 print("Question:", question)
                 print("Response:", response)
