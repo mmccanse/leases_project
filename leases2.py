@@ -15,7 +15,6 @@ from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
 
 
-
 # Set the model name for LLM
 OPENAI_MODEL = "gpt-3.5-turbo"
 
@@ -29,32 +28,53 @@ def clear_history():
 
 st.title('ASC 842 AI Assistant')
 st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases.')
-st.divider('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
+st.divider()
+st.write('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
+st.divider()
 
 
 # Define text extraction from txt file
-def extract_text_from_text_file(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            text = file.read()
-        return text
-    except Exception as e:
-        logging.error(f"Failed to read text from {file_path}: {str(e)}")
-        return None
+def extract_text_from_text_file(directory):
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        if filename.endswith('.txt'):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    text = file.read()
+                return text
+            except Exception as e:
+                logging.error(f"Failed to read text from {file_path}: {str(e)}")
+                return None
+
+
+
 
 # Define text extraction from PDF file
-def extract_text_from_pdf_file(file_path):
-    try:
-        with open(file_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            text = ''
-            for page in range(len(reader.pages )):
-                page_obj = reader.getPage(page)
-                text += page_obj.extractText()
-            return text
-    except Exception as e:
-        logging.error(f"Failed to read text from {file_path}: {str(e)}")
-        return None
+def extract_text_from_pdf_file(directory):
+    texts = []
+    pdf_files = []
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        if filename.endswith('.pdf'):
+            try:
+                with open(file_path, 'rb') as file:
+                    reader = PyPDF2.PdfReader(file)
+                    text = ''
+                    for page in range(len(reader.pages )):
+                        page_obj = reader.pages[page]
+                        text += page_obj.extract_text()
+                    texts.append(text)
+                    pdf_files.append(filename)
+            except Exception as e:
+                logging.error(f"Failed to read text from {file_path}: {str(e)}")
+                return None
+    print("PDF files extracted")
+    for pdf in pdf_files:
+        print(pdf)
+        
+    return texts
+
+
     
 #Define function to load text files from a directory:
 def load_files_from_directory(directory):
@@ -70,45 +90,6 @@ def load_files_from_directory(directory):
         texts.append(text)
     return texts
 
-# Define PDF extraction function, handles 1 PDF at a time
-# def extract_text_from_pdf(file_path):
-#     try:
-#         text = ""
-#         # Open the PDF file
-#         with open(file_path, "rb") as file:
-#             # create PDF reader object
-#             pdf_reader = PyPDF2.PdfReader(file)
-#             #iterate through each page and extract text
-#             if pdf_reader.is_encrypted:
-#                 #attempt to decrypt it
-#                 try:
-#                     pdf_reader.decrypt('')
-#                 except Exception as e:
-#                     logging.error(f"Failed to decrypt {file_path}: {str(e)}")
-#                     return None
-#             #Extract text from each page
-#             for page in pdf_reader.pages:
-#                 extracted_text = page.extract_text()
-#                 if extracted_text:
-#                     text += extracted_text
-#         return text
-#     except Exception as e:
-#         logging.error(f"Failed to extract text from {file_path}: {str(e)}")
-#         return None
-
-# Define a directory processing function that reads through the folder where PDFs are saved, checks for 
-# PDF files and uses extraction function to extract text from each.
-
-# def load_pdfs_from_directory(directory):
-#     # create dictionary to store text from each PDF
-#     texts = {}
-#     for filename in os.listdir(directory):
-#         if filename.endswith('.pdf'):
-#             file_path = os.path.join(directory, filename)
-#             text = extract_text_from_pdf(file_path)
-#             if text is not None:
-#                 texts[filename] = text
-#     return texts
     
 
 #Global definitions for text splitter and embeddings
