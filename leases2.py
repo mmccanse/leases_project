@@ -33,7 +33,7 @@ def clear_history():
         del st.session_state['history']
 
 st.title('ASC 842 AI Assistant')
-st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases.')
+st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases under US GAAP.')
 st.divider()
 st.write('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
 st.divider()
@@ -84,17 +84,17 @@ def extract_text_from_pdf_file(directory):
     
 #Define function to load text files from a directory:
 def load_files_from_directory(directory):
-    texts = []
+    loaded = []
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
         if filename.endswith('.pdf'):
-            text = extract_text_from_pdf_file(file_path)
+            text = extract_text_from_pdf_file(directory)
         elif filename.endswith('.txt'):
-            text = extract_text_from_text_file(file_path)
+            text = extract_text_from_text_file(directory)
         else:
             continue
-        texts.append(text)
-    return texts
+        loaded.append(text)
+    return loaded
 
     
 
