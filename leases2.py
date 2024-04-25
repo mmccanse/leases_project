@@ -9,14 +9,14 @@
 import os
 import streamlit as st
 import PyPDF2
-from langchain import OpenAI 
-from langchain.chat_models import ChatOpenAI
-# from langchain.text_splitter import RecursiveCharacterTextSplitter 
+from langchain_community.llms import OpenAI
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.vectorstores import Chroma 
+from langchain_experimental.text_splitter import SemanticChunker
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma 
 from langchain.chains import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
-from langchain.text_splitter import RecursiveSentenceTextSplitter
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -24,6 +24,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Set the model name for LLM
 OPENAI_MODEL = "gpt-3.5-turbo"
+EMBEDDING_MODEL = "text-embedding-ada-002"
 
 # Store API key as a variable
 openai_api_key = st.secrets["OPENAI_API_KEY"]
@@ -121,22 +122,34 @@ def load_files_from_directory(directory):
     
 
 #Global definitions for text splitter and embeddings
-text_splitter = RecursiveSentenceTextSplitter()
-embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=OPENAI_MODEL)
+embeddings = OpenAIEmbeddings(api_key=openai_api_key, model=EMBEDDING_MODEL)
+text_splitter = SemanticChunker(embeddings=embeddings)
 
-def split_and_query_text(crc, text, question):
-    #split text into manageable parts
-    chunks = text_splitter.split_text(text)
+
+# def split_and_query_text(crc, documents, question):
+#     chunks = [text_splitter.split_text(doc) for doc in documents]
+#     for chunk in chunks:
+#         response = crc.run({
+#             'question': question,
+#             'chat_history': [{'text': chunk}]
+#         })
+#         if response:
+#             return response
+#     return "No relevant information found"
     
-    #process each part with the conversational retrieval chain (CRC)
-    for chunk in chunks:
-        response = crc.run({
-            'question': question,
-            'chat_history': [{'text': chunk}]
-        })
-        if response:
-            return response
-    return "No relevant information found"
+    
+    # #split text into manageable parts
+    # chunks = text_splitter.split_text(text)
+    
+    # #process each part with the conversational retrieval chain (CRC)
+    # for chunk in chunks:
+    #     response = crc.run({
+    #         'question': question,
+    #         'chat_history': [{'text': chunk}]
+    #     })
+    #     if response:
+    #         return response
+    # return "No relevant information found"
             
 
 # def setup_vector_store(documents):
@@ -155,11 +168,11 @@ def setup_vector_store(documents):
     for doc in documents:
         print("Document:", doc)
         print("Type of document:", type(doc))
-    documents = [item for sublist in documents for item in sublist]  #this is to flatten the lists, as multiple lists were created within the content.
+    # documents = [item for sublist in documents for item in sublist]  #this is to flatten the lists, as multiple lists were created within the content.
     chunks = [text_splitter.split_text(doc) for doc in documents]
     print("Chunks:", chunks)
     print("Type of chunks:", type(chunks))
-    vector_store = Chroma.from_documents([{ 'text': chunk } for chunk in chunks], embeddings, persist_directory='db')
+    vector_store = Chroma.from_documents([{ 'text': chunk } for chunk in chunks], embeddings, persist_directory='db', metadata_fields=['metadata'])
     return vector_store
 
 def create_examples():
@@ -228,7 +241,8 @@ def main():
         if 'documents' not in st.session_state:
             text_files = load_files_from_directory('PDFs_and_TXT')
             st.session_state.documents = text_files
-            vector_store = setup_vector_store(text_files)
+        if 'crc' not in st.session_state:
+            vector_store = setup_vector_store(st.session_state.documents)
             crc = initialize_crc(vector_store, prompt_template)
             st.session_state.crc = crc
         
