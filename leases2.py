@@ -102,7 +102,7 @@ def load_files_from_directory(directory):
             text = extract_text_from_text_file(file_path)
         else:
             continue
-        loaded.append(text)
+        loaded.extend(text)
     return loaded
 
     
@@ -127,6 +127,8 @@ def split_and_query_text(crc, text, question):
             
 
 def setup_vector_store(documents):
+    print("Documents:", documents) 
+    print("Types:", [type(doc) for doc in documents]) 
     #ensure documents is a list of strings
     if not all(isinstance(doc, str) for doc in documents):
         logging.error("Documents for vector store setup are not all strings.")
