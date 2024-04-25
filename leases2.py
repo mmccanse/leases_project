@@ -126,17 +126,24 @@ def split_and_query_text(crc, text, question):
     return "No relevant information found"
             
 
+# def setup_vector_store(documents):
+#     # print("Documents:", documents) 
+#     # print("Types:", [type(doc) for doc in documents]) 
+#     #ensure documents is a list of strings
+#     if not all(isinstance(doc, str) for doc in documents):
+#         logging.error("Documents for vector store setup are not all strings.")
+#     chunks = [text_splitter.split_text(doc) for doc in documents]
+#     vector_store = Chroma.from_documents([{ 'text': chunk } for chunk in chunks], embeddings, persist_directory='db')
+#     return vector_store
+
 def setup_vector_store(documents):
-    # print("Documents:", documents) 
-    # print("Types:", [type(doc) for doc in documents]) 
-    #ensure documents is a list of strings
-    if not all(isinstance(doc, str) for doc in documents):
-        logging.error("Documents for vector store setup are not all strings.")
+    print("Documents:", documents)
+    print("Type of documents:", type(documents))
     chunks = [text_splitter.split_text(doc) for doc in documents]
+    print("Chunks:", chunks)
+    print("Type of chunks:", type(chunks))
     vector_store = Chroma.from_documents([{ 'text': chunk } for chunk in chunks], embeddings, persist_directory='db')
     return vector_store
-
-
 
 def create_examples():
     examples = [
