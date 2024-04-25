@@ -102,7 +102,7 @@ def load_files_from_directory(directory):
             text = extract_text_from_text_file(file_path)
         else:
             continue
-        loaded.append(text)
+        loaded.append({'page_content': text})
     return loaded
 
     
@@ -205,7 +205,7 @@ def main():
         if 'documents' not in st.session_state:
             text_files = load_files_from_directory('PDFs_and_TXT')
             # pdf_texts = load_pdfs_from_directory('pdfs')
-            documents = [text for text in text_files.items()]
+            documents = text_files
             st.session_state.documents = documents
             vector_store = setup_vector_store(documents)
             crc = initialize_crc(vector_store, prompt_template)
