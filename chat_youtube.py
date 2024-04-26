@@ -25,7 +25,7 @@ if youtube_url and add_file:
         loader = YoutubeLoader.from_youtube_url(youtube_url)
         documents = loader.load()
         
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
         
         chunks = text_splitter.split_documents(documents)
         
@@ -59,3 +59,4 @@ if question:
         for prompts in st.session_state['history']:
             st.write("Question: " + prompts[0])
             st.write("Answer: " + prompts[1])
+            
