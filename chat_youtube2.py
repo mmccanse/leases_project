@@ -42,6 +42,9 @@ if process_video and youtube_url:
         
 question = st.text_area('Input your question')
 submit_question = st.button('Submit question')
+clear_history_button = st.button('Clear History')
+if clear_history_button:
+    clear_history()
 
 if submit_question and question and 'crc' in st.session_state:
     crc = st.session_state.crc
@@ -56,6 +59,6 @@ if submit_question and question and 'crc' in st.session_state:
         
     st.write('Conversation History')
     for prompts in st.session_state['history']:
-        st.write("Question: " + prompts[0])
-        st.write("Answer: " + prompts[1])
+        st.markdown(f"**Question:** {prompts[0]}")
+        st.markdown(f"**Answer:** {prompts[1]}")
             
