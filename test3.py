@@ -8,7 +8,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma 
-from langchain.chains import ConversationalRetrievalChain, LLMChain, Chain
+from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -109,7 +109,7 @@ def initialize_crc(embeddings, documents, prompt_template):
     retrieval_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever)
     
     #combined chain combines LLMChain and conversational retrieval chain
-    combined_chain = Chain([llm_chain, retrieval_chain])
+    combined_chain = LLMChain([llm_chain, retrieval_chain])
     return combined_chain
 
 
