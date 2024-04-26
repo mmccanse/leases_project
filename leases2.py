@@ -8,6 +8,7 @@
 # Imports
 import os
 import streamlit as st
+from langchain.document_loaders import PyPDFLoader
 import PyPDF2
 from langchain_community.llms import OpenAI
 from langchain_community.chat_models import ChatOpenAI
@@ -108,7 +109,7 @@ def load_files_from_directory(directory):
                 reader = PyPDF2.PdfReader(file)
                 for page in range(len(reader.pages)):
                     page_obj = reader.pages[page]
-                    text += page_obj.extract_text().strip('[]')
+                    text += page_obj.extract_text_from_pdf_file().strip('[]')
             loaded.append(text)
             
         elif filename.endswith('.txt'):
