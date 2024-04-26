@@ -1,5 +1,3 @@
-pip install -U langchain-community
-pip install -U langchain-openai
 
 import os
 import streamlit as st
@@ -98,15 +96,13 @@ def setup_prompt_template(examples):
     return template
 
 
-
-
 #initialize conversational retrieval chain
 def initialize_crc(embeddings, documents, prompt_template):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=200)
     chunks = text_splitter.split_documents(documents) 
     vector_store = Chroma.from_documents(chunks, embeddings, persist_directory='db')
     llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
-    llm_chain = LLMChain(llm=llm, prompt_template=prompt_template, verbose=False)
+    llm_chain = LLMChain(llm=llm, prompt=prompt_template)
     retriever=vector_store.as_retriever(metadata_fields=['metadata'])
     retrieval_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever)
     
