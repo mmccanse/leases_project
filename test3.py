@@ -1,3 +1,5 @@
+pip install -U langchain-community
+pip install -U langchain-openai
 
 import os
 import streamlit as st
@@ -73,7 +75,7 @@ examples = [
 ]
 
 # Create template for examples
-example_template = PromptTemplate(input_variables=["query", "answer"], template="Question: {query}\nAnswer: {answer}"), 
+example_template = PromptTemplate(input_variables=["query", "answer"], template="Question: {query}\nAnswer: {answer}") 
 
 
 # Create function to setup prompt template
