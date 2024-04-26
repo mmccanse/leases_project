@@ -57,7 +57,7 @@ if submit_question and question and 'crc' in st.session_state:
     st.write(response)
     st.divider()
         
-    st.write('Conversation History')
+    st.markdown(f"**Conversation History**")
     for prompts in st.session_state['history']:
         st.markdown(f"**Question:** {prompts[0]}")
         st.markdown(f"**Answer:** {prompts[1]}")
