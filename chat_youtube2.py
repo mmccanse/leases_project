@@ -58,7 +58,10 @@ if submit_question and question and 'crc' in st.session_state:
     st.divider()
         
     st.markdown(f"**Conversation History**")
-    for prompts in st.session_state['history']:
+    for prompts in reversed(st.session_state['history']):
         st.markdown(f"**Question:** {prompts[0]}")
         st.markdown(f"**Answer:** {prompts[1]}")
-            
+        st.divider()
+    
+    if st.session_state['history']:
+    st.empty()        
