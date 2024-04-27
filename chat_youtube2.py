@@ -106,7 +106,11 @@ def main():
     youtube_url = st.text_input('Input YouTube URL')
     process_video = video_button()
 
+
     if process_video and youtube_url:
+        
+        #check if crc already exists in sessoin state
+            
         with st.spinner('Reading, chunking, and embedding...'):
             
             loader = YoutubeLoader.from_youtube_url(youtube_url)
@@ -120,8 +124,6 @@ def main():
             crc = ConversationalRetrievalChain.from_llm(llm,retriever)
             st.session_state.crc = crc
             st.success('Video processed and ready for queries')
-            # # clear the crc from the session state
-            # st.session_state.pop('crc', None)
             
 
     question = st.text_area('Input your question')
@@ -139,7 +141,6 @@ def main():
     
     if clear_history_button:
         clear_history()
-        # st.session_state.pop('history', None)
 
     if submit_question and question and 'crc' in st.session_state:
         crc = st.session_state.crc  
