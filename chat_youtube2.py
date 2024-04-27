@@ -120,6 +120,8 @@ def main():
             crc = ConversationalRetrievalChain.from_llm(llm,retriever)
             st.session_state.crc = crc
             st.success('Video processed and ready for queries')
+            # clear the crc from the session state
+            st.session_state.pop('crc', None)
             
 
     question = st.text_area('Input your question')
@@ -137,8 +139,9 @@ def main():
     
     if clear_history_button:
         clear_history()
+        st.session_state.pop('history', None)
 
-    if submit_question and question and 'crc' in st.session_state:
+    if submit_question and 'crc' in st.session_state:
         crc = st.session_state.crc  
         if 'history' not in st.session_state:
             st.session_state['history'] = []
