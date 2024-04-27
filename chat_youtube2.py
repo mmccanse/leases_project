@@ -16,8 +16,7 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
 # Define function to clear history
 def clear_history():
-    if 'history' in st.session_state:
-        del st.session_state['history']
+    st.session_state['history'] = []
 
 # Styles Setup  #########################################################################
 
@@ -102,6 +101,8 @@ def clear_button():
 
 # Define main function
 def main():
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
     header()
     youtube_url = st.text_input('Input YouTube URL')
     process_video = video_button()
@@ -109,20 +110,27 @@ def main():
 
     if process_video and youtube_url:
         
-        #check if crc already exists in sessoin state
+        #clear existing vector store and chat history
+        if 'vector_store' in st.session_state:
+            del st.session_state['vector_store']
+        if 'chat_history' in st. session_state:
+            del st.session_state['chat_history']
+        if 'crc' in st.session_state:
+            del st.session_state['crc']
             
         with st.spinner('Reading, chunking, and embedding...'):
             
             loader = YoutubeLoader.from_youtube_url(youtube_url)
             documents = loader.load()
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=300)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
             chunks = text_splitter.split_documents(documents)
             embeddings = OpenAIEmbeddings()
             vector_store = Chroma.from_documents(chunks, embeddings)
-            llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=.2)
-            retriever = vector_store.as_retriever()
-            crc = ConversationalRetrievalChain.from_llm(llm,retriever)
-            st.session_state.crc = crc
+            st.session_state['vector_store'] = vector_store
+            # llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=.2)
+            # retriever = vector_store.as_retriever()
+            # crc = ConversationalRetrievalChain.from_llm(llm,retriever)
+            # st.session_state.crc = crc
             st.success('Video processed and ready for queries')
             
 
@@ -142,15 +150,19 @@ def main():
     if clear_history_button:
         clear_history()
 
-    if submit_question and question and 'crc' in st.session_state:
-        crc = st.session_state.crc  
-        if 'history' not in st.session_state:
-            st.session_state['history'] = []
-        response = crc.run({'question':question, 'chat_history':st.session_state['history']})
-        st.session_state['history'].append((question,response))
-        st.write(response)
-        st.divider()
-            
+    if submit_question and question:
+        if 'vector_store' in st.session_state:
+            vector_store = st.session_state['vector_store']
+            retriever = vector_store.as_retriever()
+            llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=.2)
+            crc = ConversationalRetrievalChain.from_llm(llm,retriever)
+            if 'chat_history' not in st.session_state:
+                st.session_state['chat_history'] = []
+            response = crc.run({'question': question, 'chat_history': st.session_state['chat_history']})
+            st.session_state['history'].append((question, response))
+            st.write(response)
+            st.divider()
+        
         st.markdown(f"**Conversation History**")
         for prompts in reversed(st.session_state['history']):
             st.markdown(f"**Question:** {prompts[0]}")
@@ -159,7 +171,9 @@ def main():
             
         if st.session_state['history']:
             st.empty()
-    
-       
+
+# for the_values in st.session_state.values():
+#     st.write(the_values)
+
 if __name__== '__main__':
     main()
