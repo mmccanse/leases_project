@@ -31,27 +31,36 @@ def clear_history():
 def header():
     colored_header(
         label ="YouTube Chat Assistant",
+        description = "Find a YouTube video with accurate captions and enter the url below",
         color_name="blue-green-70",   
     )
     # additional styling
-    st.markdown("""
-        <style>
-        /* Adjust the font size of the header */
-        .st-emotion-cache-10trblm.e1nzilvr1 {
-            font-size; 72px !important; /* Change this value to increase or decrease font size
-        }
-        /* Adjust the thickness of the line */
-        hr {
-            height; 20px !important; /* Increase this value for a thicker line */
-        }
-        </style>
+    st.write("""
+    <style>
+    /* Adjust the font size of the header */
+    div[data-baseweb="header"] > div {
+    font-size: 48px !important;
+    }
+
+    /* Adjust the thickness of the line */
+    div[data-baseweb="header"] > hr {
+    height: 40px !important;
+    background-color: rgb(0, 212, 177) !important;
+    }
+
+    /* Adjust the font size of the description */
+    div[data-baseweb="header"] > div > div {
+    font-size: 50px !important;
+    }
+    </style>
+
     """, unsafe_allow_html=True)
     
 
 # Define main function
 def main():
     header()
-    st.title('YouTube Chat Assistant!')
+    # st.title('YouTube Chat Assistant!')
     youtube_url = st.text_input('Input your Youtube URL')
     process_video = st.button('Process video')
 
