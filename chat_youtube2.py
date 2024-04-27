@@ -37,12 +37,12 @@ def header():
     st.markdown("""
         <style>
         /* Adjust the font size of the header */
-        .st-emotion-cache-10trblm {
-            font-size; 72px: /* Change this value to increase or decrease font size
+        .st-emotion-cache-10trblm.e1nzilvr1 {
+            font-size; 72px !important; /* Change this value to increase or decrease font size
         }
         /* Adjust the thickness of the line */
         hr {
-            height; 20px; /* Increase this value for a thicker line */
+            height; 20px !important; /* Increase this value for a thicker line */
         }
         </style>
     """, unsafe_allow_html=True)
