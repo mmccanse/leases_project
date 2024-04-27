@@ -8,16 +8,10 @@ from langchain.vectorstores import Chroma
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders import YoutubeLoader
 from streamlit_extras.colored_header import colored_header
+from streamlit_extras.stylable_container import stylable_container
 
 # Access open AI key
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
-# Set up Streamlit page configuration
-st.set_page_config(page_title=None,
-                   page_icon=None,
-                   layout="centered",
-                   initial_sidebar_state="auto",
-                   menu_items=None)
 
 
 # Define function to clear history
@@ -25,44 +19,93 @@ def clear_history():
     if 'history' in st.session_state:
         del st.session_state['history']
 
+# Styles Setup  #########################################################################
 
 # Define header size/color
 
 def header():
     colored_header(
         label ="YouTube Chat Assistant",
-        description = "Find a YouTube video with accurate captions and enter the url below",
-        color_name="blue-green-70",   
+        description = "Find a YouTube video with accurate captions. Enter the url below.",
+        color_name='light-blue-40'   
     )
     # additional styling
-    st.write("""
-    <style>
-    /* Adjust the font size of the header */
-    div[data-baseweb="header"] > div {
-    font-size: 48px !important;
-    }
-
-    /* Adjust the thickness of the line */
-    div[data-baseweb="header"] > hr {
-    height: 40px !important;
-    background-color: rgb(0, 212, 177) !important;
-    }
-
-    /* Adjust the font size of the description */
-    div[data-baseweb="header"] > div > div {
-    font-size: 50px !important;
-    }
-    </style>
-
+    st.markdown("""
+        <style>
+        /* Adjust the font size of the header */
+        .st-emotion-cache-10trblm.e1nzilvr1 {
+            font-size: 60px !important; /* Change this value to increase or decrease font size
+        }
+        </style>
     """, unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        /* Adjust the thickness of the line */
+        hr {
+            height: 16px !important; /* Change this value to increase or decrease line thickness
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        /* Adjust the font size of the description */
+        div[data-testid="stCaptionContainer"] p {
+            font-size: 20px !important; /* Change this value to increase or decrease font size
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+# Define button style/formatting
     
+def video_button():
+    with stylable_container(
+        key="video",
+        css_styles="""
+            button {
+                background-color: #74eeff;
+                color: #000000;
+                border-radius: 20px;
+                }
+                """
+    ) as container:
+        return st.button("Submit video")
+
+
+def question_button():
+    with stylable_container(
+        key="question",
+        css_styles="""
+            button {
+                background-color: #74eeff;
+                color: #000000;
+                border-radius: 20px;
+                }
+                """
+    ) as container:
+        return st.button("Submit question")
+
+def clear_button():
+    with stylable_container(
+        key="clear",
+        css_styles="""
+            button {
+                background-color: #74eeff;
+                color: #000000;
+                border-radius: 20px;
+                }
+                """
+    ) as container:
+        return st.button("Clear history")
+    
+# End styles section ###########################################################################
+
 
 # Define main function
 def main():
     header()
-    # st.title('YouTube Chat Assistant!')
-    youtube_url = st.text_input('Input your Youtube URL')
-    process_video = st.button('Process video')
+    youtube_url = st.text_input('Input YouTube URL')
+    process_video = video_button()
+    
 
     if process_video and youtube_url:
         with st.spinner('Reading, chunking, and embedding...'):
@@ -79,14 +122,23 @@ def main():
             st.session_state.crc = crc
             st.success('Video processed and ready for queries')
             
-    question = st.text_area('Input your question')
-    submit_question = st.button('Submit question')
-    clear_history_button = st.button('Clear History')
+    question = st.text_input('Input your question')
+    st.markdown("""
+        <style>
+        /* Adjust the font size of the input labels */
+        .st-emotion-cache-ue6h4q p {
+        font-size: 20px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # submit_question = question_button()
+    clear_history_button = clear_button()
     
     if clear_history_button:
         clear_history()
 
-    if submit_question and question and 'crc' in st.session_state:
+    if question and question and 'crc' in st.session_state:
         crc = st.session_state.crc
         if 'history' not in st.session_state:
             st.session_state['history'] = []    
