@@ -7,6 +7,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders import YoutubeLoader
+from streamlit_extras.colored_header import colored_header
 
 # Access open AI key
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -24,8 +25,32 @@ def clear_history():
     if 'history' in st.session_state:
         del st.session_state['history']
 
+
+# Define header size/color
+
+def header():
+    colored_header(
+        label ="YouTube Chat Assistant",
+        color_name="blue-green-70",   
+    )
+    # additional styling
+    st.markdown("""
+        <style>
+        /* Adjust the font size of the header */
+        .st-emotion-cache-10trblm {
+            font-size; 72px: /* Change this value to increase or decrease font size
+        }
+        /* Adjust the thickness of the line */
+        hr {
+            height; 20px; /* Increase this value for a thicker line */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+
 # Define main function
 def main():
+    header()
     st.title('YouTube Chat Assistant!')
     youtube_url = st.text_input('Input your Youtube URL')
     process_video = st.button('Process video')
