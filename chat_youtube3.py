@@ -156,7 +156,7 @@ def main():
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
             chunks = text_splitter.split_documents(documents)
             embeddings = OpenAIEmbeddings()
-            vector_store = Chroma.from_documents(chunks, embeddings)
+            vector_store = Chroma.from_documents(chunks, embeddings,persist_directory='db2')
             st.session_state['vector_store'] = vector_store
             llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=.2)
             retriever = vector_store.as_retriever()
@@ -176,8 +176,8 @@ def main():
         reset_session_state()
         st.experimental_rerun()
             
-# for the_values in st.session_state.values():
-#     st.write(the_values)
+for the_values in st.session_state.values():
+    st.write(the_values)
 
 if __name__== '__main__':
     main()
