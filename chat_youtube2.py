@@ -122,7 +122,12 @@ def main():
             st.session_state.crc = crc
             st.success('Video processed and ready for queries')
             
-    question = st.text_input('Input your question')
+    # initializing or resetting the question input
+    if 'question_input' not in st.session_state:
+        st.session_state.question_input = " "
+    
+    # use the session state variable for the question input
+    question = st.text_area('Input your question', value=st.session_state.question_input, key='question_input')
     st.markdown("""
         <style>
         /* Adjust the font size of the input labels */
@@ -132,29 +137,34 @@ def main():
         </style>
     """, unsafe_allow_html=True)
     
-    # submit_question = question_button()
+    submit_question = question_button()
     clear_history_button = clear_button()
     
     if clear_history_button:
         clear_history()
 
-    if question and question and 'crc' in st.session_state:
-        crc = st.session_state.crc
-        if 'history' not in st.session_state:
-            st.session_state['history'] = []    
-        response = crc.run({'question':question, 'chat_history':st.session_state['history']})
+    if submit_question and question:
+        if 'crc' in st.session_state:
+            crc = st.session_state.crc
+            if 'history' not in st.session_state:
+                st.session_state['history'] = []    
+            response = crc.run({'question':question, 'chat_history':st.session_state['history']})
             
-        st.session_state['history'].append((question,response))
-        st.write(response)
-        st.divider()
-            
-        st.markdown(f"**Conversation History**")
-        for prompts in reversed(st.session_state['history']):
-            st.markdown(f"**Question:** {prompts[0]}")
-            st.markdown(f"**Answer:** {prompts[1]}")
+            st.session_state['history'].append((question,response))
+            st.write(response)
             st.divider()
-        
-        if st.session_state['history']:
-            st.empty()        
+            
+            st.markdown(f"**Conversation History**")
+            for prompts in reversed(st.session_state['history']):
+                st.markdown(f"**Question:** {prompts[0]}")
+                st.markdown(f"**Answer:** {prompts[1]}")
+                st.divider()
+            
+            if st.session_state['history']:
+                st.empty()
+    
+        #Clear the input box after processing the question
+        st.session_state.question_input = " "
+       
 if __name__== '__main__':
     main()
