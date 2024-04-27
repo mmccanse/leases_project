@@ -104,11 +104,7 @@ def clear_button():
 def main():
     header()
     youtube_url = st.text_input('Input YouTube URL')
-    
-    if 'last_processed_url' not in st.session_state or st.session_state.last_processed_url != youtube_url:
-        process_video = video_button()
-    else:
-        process_video = False  # Prevent reprocessing if the URL hasn't changed
+    process_video = video_button()
 
     if process_video and youtube_url:
         with st.spinner('Reading, chunking, and embedding...'):
@@ -123,8 +119,6 @@ def main():
             retriever = vector_store.as_retriever()
             crc = ConversationalRetrievalChain.from_llm(llm,retriever)
             st.session_state.crc = crc
-            st.session_state.last_processed_url = youtube_url  # Update the last processed URL
-            st.session_state.history = []  # Reset history whenever a new video is processed
             st.success('Video processed and ready for queries')
             
 
@@ -146,6 +140,8 @@ def main():
 
     if submit_question and question and 'crc' in st.session_state:
         crc = st.session_state.crc  
+        if 'history' not in st.session_state:
+            st.session_state['history'] = []
         response = crc.run({'question':question, 'chat_history':st.session_state['history']})
         st.session_state['history'].append((question,response))
         st.write(response)
