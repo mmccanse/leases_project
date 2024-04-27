@@ -104,15 +104,18 @@ def clear_button():
 def main():
     header()
     youtube_url = st.text_input('Input YouTube URL')
-    process_video = video_button()
     
+    if 'last_processed_url' not in st.session_state or st.session_state.last_processed_url != youtube_url:
+        process_video = video_button()
+    else:
+        process_video = False  # Prevent reprocessing if the URL hasn't changed
 
     if process_video and youtube_url:
         with st.spinner('Reading, chunking, and embedding...'):
             
             loader = YoutubeLoader.from_youtube_url(youtube_url)
             documents = loader.load()
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=300)
             chunks = text_splitter.split_documents(documents)
             embeddings = OpenAIEmbeddings()
             vector_store = Chroma.from_documents(chunks, embeddings)
@@ -120,14 +123,12 @@ def main():
             retriever = vector_store.as_retriever()
             crc = ConversationalRetrievalChain.from_llm(llm,retriever)
             st.session_state.crc = crc
+            st.session_state.last_processed_url = youtube_url  # Update the last processed URL
+            st.session_state.history = []  # Reset history whenever a new video is processed
             st.success('Video processed and ready for queries')
             
-    # initializing or resetting the question input
-    if 'question_input' not in st.session_state:
-        st.session_state.question_input = " "
-    
-    # use the session state variable for the question input
-    question = st.text_area('Input your question', value=st.session_state.question_input, key='question_input')
+
+    question = st.text_area('Input your question')
     st.markdown("""
         <style>
         /* Adjust the font size of the input labels */
@@ -143,28 +144,22 @@ def main():
     if clear_history_button:
         clear_history()
 
-    if submit_question and question:
-        if 'crc' in st.session_state:
-            crc = st.session_state.crc
-            if 'history' not in st.session_state:
-                st.session_state['history'] = []    
-            response = crc.run({'question':question, 'chat_history':st.session_state['history']})
+    if submit_question and question and 'crc' in st.session_state:
+        crc = st.session_state.crc  
+        response = crc.run({'question':question, 'chat_history':st.session_state['history']})
+        st.session_state['history'].append((question,response))
+        st.write(response)
+        st.divider()
             
-            st.session_state['history'].append((question,response))
-            st.write(response)
+        st.markdown(f"**Conversation History**")
+        for prompts in reversed(st.session_state['history']):
+            st.markdown(f"**Question:** {prompts[0]}")
+            st.markdown(f"**Answer:** {prompts[1]}")
             st.divider()
             
-            st.markdown(f"**Conversation History**")
-            for prompts in reversed(st.session_state['history']):
-                st.markdown(f"**Question:** {prompts[0]}")
-                st.markdown(f"**Answer:** {prompts[1]}")
-                st.divider()
-            
-            if st.session_state['history']:
-                st.empty()
+        if st.session_state['history']:
+            st.empty()
     
-        #Clear the input box after processing the question
-        st.session_state.question_input = " "
        
 if __name__== '__main__':
     main()
