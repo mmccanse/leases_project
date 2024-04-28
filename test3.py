@@ -14,6 +14,8 @@ from langchain.chains import (
     create_history_aware_retriever,
     create_retrieval_chain,
 )
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 # from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
@@ -56,6 +58,37 @@ def initialize_crc(vector_store):
     llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
     retriever=vector_store.as_retriever()
     crc = ConversationalRetrievalChain.from_llm(llm, retriever)
+    return crc 
+
+#initialize create retrieval chain (experiment)
+def initialize_createrc(vector_store):
+    llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
+    retriever=vector_store.as_retriever()
+    contextualize_q_system_prompt = (""""Given a chat history and the latest user question "
+    "which might reference context in the chat history, "
+    "formulate a standalone question which can be understood "
+    "without the chat history. Do NOT answer the question, just "
+    "reformulate it if needed and otherwise return it as is.""")
+    contextualize_q_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_q_system_prompt),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+    history_aware_retriever = create_history_aware_retriever(
+        llm, retriever, contextualize_q_prompt
+    )
+    
+    qa_system_prompt = (
+        """You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
+    the examples. Each response will be followed by reference from multiple sources with section numbers from the source documents. 
+    The responses will be provided only from the provided PDF source documents.  The responses will be clear and helpful and will use 
+    language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in
+    the PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance
+    from a qualified expert." """
+    )
+    
     return crc 
 
 
