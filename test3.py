@@ -127,7 +127,7 @@ def process_question(question):
         final_response = setup_prompt_template(crc, history)
         st.session_state['history'].append((question, final_response)) #append to history in session state
 
-def display_final_response(final_response, history):
+def display_final_response_and_history(final_response, history):
     if st.session_state['history']:
         st.write(final_response)
         st.divider()
@@ -166,16 +166,7 @@ def main():
                 process_question(question)
             
             st.divider()
-            display_final_response()
-                
-                    
-                    
-                    
-                        
-                    st.write('Conversation History')
-                    for prompts in st.session_state['history']:
-                        st.write("Question: " + prompts[0])
-                        st.write("Answer: " + prompts[1]) 
+            display_final_response_and_history()
         
         except Exception as e:
             #add debugging statement
