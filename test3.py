@@ -4,13 +4,12 @@ from dotenv import load_dotenv
 import streamlit as st
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Qdrant
+from langchain_community.vectorstores import Qdrant
 from langchain_openai import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
-from langchain_openai import OpenAI
+from langchain_openai import ChatOpenAI, OpenAI
 from qdrant_client import QdrantClient, models
 import qdrant_client
-from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
@@ -51,23 +50,19 @@ def get_vector_store():
 #initialize conversational retrieval chain
 def initialize_crc(vector_store):
     llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
-    retriever=vector_store.as_retriever(metadata_fields=['metadata'])
+    retriever=vector_store.as_retriever()
     crc = ConversationalRetrievalChain.from_llm(llm, retriever)
-    st.session_state.crc = crc
-    st.success('Source documents loaded!')
     return crc 
 
 
 # Create function to setup prompt template
-def setup_prompt_template(crc,history):
+def setup_prompt_template(crc, query, history):
     prefix="""You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
     the examples. Each response will be followed by reference from multiple sources with section numbers from the source documents. 
     The responses will be provided only from the provided PDF source documents.  The responses will be clear and helpful and will use 
     language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in
     the PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance
-    from a qualified expert." Additionally, if someone asks a question unrelated to lease accounting, kindly and gently guide them back
-    to the topic of lease accounting by saying, "that question is outside the scope of what I can respond to, let's get
-    back to lease accounting, how can I help you?" """
+    from a qualified expert." """
      
      # Define examples to instruct app how to respond
     examples = [
@@ -97,9 +92,15 @@ def setup_prompt_template(crc,history):
     #Define format for examples:
     example_format = """Human: {query}\nAI: {answer}"""
     
-    #Create template for examples:
     example_template = PromptTemplate(input_variables=["query", "answer"],
                                       template=example_format)
+    
+    example_prompts = [example_format.format(**ex) for ex in examples]
+    
+    full_prompt = f"{prefix}\n\n" + "\n\n".join(example_prompts) + "\n\nHuman: {query}\nAI: "
+    
+    enriched_history = history + [(query, full_prompt)]
+    
     
     #Define suffix for query
     suffix="\n\nHuman: {query}\nAI: "
@@ -107,7 +108,7 @@ def setup_prompt_template(crc,history):
     #Construct FewShotPromptTemplate
     prompt_template = FewShotPromptTemplate(
                                             examples=examples,
-                                            example_prompt=example_template,
+                                            example_prompt=example_template
                                             input_variables=["query"],
                                             prefix=prefix,
                                             suffix=suffix,
@@ -118,18 +119,30 @@ def setup_prompt_template(crc,history):
     #create chain wiht llm and prompt template
     chain = LLMChain(llm=llm, prompt=prompt_template, verbose=False)
     
-    #run chain on query
-    result = chain.invoke({"query": crc,
-                           "chat_history": history})
+    #run the chain with the current query and chat history
+    result = chain.run({"query": query,
+                        "chat_history": enriched_history}) 
+    
+    response = crc.run({'question': query, 'chat_history': enriched_history})
+    return response
     
     return result["text"]
 
-def process_question(question):
-    with st.spinner("Searching the guidance..."):
-        response = st.session_state.crc.run({'question':question,'chat_history':st.session_state['history'], 'metadata': True})
-        final_response = setup_prompt_template(crc, history)
-        st.session_state['history'].append((question, final_response)) #append to history in session state
-        st.session_state['final_response'] = final_response
+def process_question(question,crc,history):
+    try:
+        print("processing question: ", question)
+        print("processing chat history: ", history)
+        response = crc.run({'question':question,'chat_history':st.session_state['history']})
+        if response:
+            # If response is True, return a success message
+            return response
+        else:
+        # If response is False, return an error message
+            return "Error in response"
+    except Exception as e:
+        print("Error during processing:", e)
+        return str(e), "Error"
+        
         
 def display_final_response_and_history(final_response, history):
     st.write(final_response)
@@ -158,18 +171,25 @@ def main():
             if 'vector_store' not in st.session_state:
                 st.session_state['vector_store'] = get_vector_store()
             st.session_state['crc'] = initialize_crc(st.session_state['vector_store'])
+            st.success('Source documents loaded!')
             
-        question = st.text_input('Ask a question about lease accounting:', key='user_input_text', placeholder='Type your question here...')
+        question = st.text_input('Ask a question about lease accounting:', placeholder='Type your question here...')
         st.caption("Press Enter to submit your question. Remember to clear the text box for new questions.")
         st.divider()
 
         if question:
-            process_question(question)
-        
-        if 'final_response' in st.session_state and 'history' in st.session_state:
-            display_final_response_and_history(st.session_state['final_response'], st.session_state['history'])
+            with st.spinner("Searching the guidance..."):
+                response = process_question(question, st.session_state['crc'], st.session_state['history'])
+                st.session_state['history'].append((question, response)) #append to history in session state
+                final_response = setup_prompt_template(st.session_state['crc'], st.session_state['history'])
+                st.write(final_response)
             
-        st.divider()
+            st.divider()
+            st.markdown(f"**Conversation History**")
+            for prompts in reversed(st.session_state['history']):
+                st.markdown(f"**Question:** {prompts[0]}")
+                st.markdown(f"**Answer** {prompts[1]}")
+                st.divider()
         
     except Exception as e:
         #add debugging statement
