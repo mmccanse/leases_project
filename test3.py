@@ -68,7 +68,8 @@ def setup_prompt_template(crc, query, history):
     The responses will be provided only from the provided PDF source documents.  The responses will be clear and helpful and will use 
     language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in
     the PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance
-    from a qualified expert." """
+    from a qualified expert." If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help
+    you with. Let's get back to lease accounting." """
      
      # Define examples to instruct app how to respond
     examples = [
@@ -177,15 +178,19 @@ def main():
                 st.session_state['vector_store'] = get_vector_store()
             st.session_state['crc'] = initialize_crc(st.session_state['vector_store'])
             st.success('Source documents loaded!')
+        
+        
             
         question = st.text_input('Ask a question about lease accounting:', placeholder='Type your question here...')
         st.caption("Press Enter to submit your question. Remember to clear the text box for new questions.")
         st.divider()
 
         if question:
+            if 'prompt_template' not in st.session_state:
+                st.session_state['prompt_template'] = setup_prompt_template(st.session_state['crc'], question, st.session_state['history'])
             with st.spinner("Searching the guidance..."):
-                response = process_question(question, st.session_state['crc'], st.session_state['history'])
-                st.session_state['history'].append((question, response)) #append to history in session state
+                # response = process_question(question, st.session_state['crc'], st.session_state['history'])
+                # st.session_state['history'].append((question, response)) #append to history in session state
                 final_response = setup_prompt_template(st.session_state['crc'], question, st.session_state['history'])
                 st.write(final_response)
             
