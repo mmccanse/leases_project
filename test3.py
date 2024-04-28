@@ -10,7 +10,11 @@ from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI, OpenAI
 from qdrant_client import QdrantClient, models
 import qdrant_client
-from langchain.chains import ConversationalRetrievalChain, LLMChain
+from langchain.chains import (
+    create_history_aware_retriever,
+    create_retrieval_chain,
+)
+# from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -100,7 +104,6 @@ def setup_prompt_template(crc, query, history):
     full_prompt = f"{prefix}\n\n" + "\n\n".join(example_prompts) + "\n\nHuman: {query}\nAI: "
     
     enriched_history = history + [(query, full_prompt)]
-    
     
     #Define suffix for query
     suffix="\n\nHuman: {query}\nAI: "
