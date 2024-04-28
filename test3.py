@@ -1,17 +1,21 @@
 
 import os
+from dotenv import load_dotenv
 import streamlit as st
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-import PyPDF2
-from langchain import OpenAI 
+from langchain.vectorstores import Qdrant
+from langchain_openai import OpenAIEmbeddings
+from langchain.chains import RetrievalQA
+from langchain_openai import OpenAI
+from qdrant_client import QdrantClient, models
+import qdrant_client
 from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma 
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
 
 # Set the model name for LLM
 OPENAI_MODEL = "gpt-3.5-turbo"
@@ -24,14 +28,14 @@ def clear_history():
     if 'history' in st.session_state:
         del st.session_state['history']
 
-# Create titles and headers seen on app
-
-
 # Define function to access Qdrant vector store
+
 def get_vector_store():
     #Create a client to connect to Qdrant server
-    client = qdrant_client.QdrantClient(st.secrets["QDRANT_HOST"],
-                                        api_key=st.secrets["QDRANT_API_KEY"])
+    client = qdrant_client.QdrantClient(
+        st.secrets["QDRANT_HOST"],
+        api_key=st.secrets["QDRANT_API_KEY"]
+        )
     
     #initialize embeddings for vector store
     embeddings = OpenAIEmbeddings()
@@ -45,9 +49,8 @@ def get_vector_store():
 
 
 #initialize conversational retrieval chain
-def initialize_crc(embeddings, documents, prompt_template):
+def initialize_crc(vector_store):
     llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0, api_key=openai_api_key)
-    llm_chain = LLMChain(llm=llm, prompt=prompt_template)
     retriever=vector_store.as_retriever(metadata_fields=['metadata'])
     crc = ConversationalRetrievalChain.from_llm(llm, retriever)
     st.session_state.crc = crc
@@ -123,19 +126,19 @@ def setup_prompt_template(crc,history):
 
 def process_question(question):
     with st.spinner("Searching the guidance..."):
-        response = st.session_state['chain'].run({'question':question,'chat_history':st.session_state['history'], 'metadata': True})
+        response = st.session_state.crc.run({'question':question,'chat_history':st.session_state['history'], 'metadata': True})
         final_response = setup_prompt_template(crc, history)
         st.session_state['history'].append((question, final_response)) #append to history in session state
-
+        st.session_state['final_response'] = final_response
+        
 def display_final_response_and_history(final_response, history):
-    if st.session_state['history']:
-        st.write(final_response)
-        st.divider()
-        st.markdown(f"**Conversation History**")
-        for prompts in reversed(history):
-            st.markdown(f"**Question:** {prompts[0]}")
-            st.markdown(f"**Answer** {prompts[1]}")
-            st.divider
+    st.write(final_response)
+    st.divider()
+    st.markdown(f"**Conversation History**")
+    for prompts in reversed(history):
+        st.markdown(f"**Question:** {prompts[0]}")
+        st.markdown(f"**Answer** {prompts[1]}")
+        st.divider
         
 
 # define streamlit app
@@ -145,32 +148,32 @@ def main():
     st.divider()
     st.write('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
     st.divider()
-        try:
+    try:
             
-            #Initialize history before it is accessed
-            if 'history' not in st.session_state:
-                st.session_state['history'] = []
+        #Initialize history before it is accessed
+        if 'history' not in st.session_state:
+            st.session_state['history'] = []
             
+        if 'crc' not in st.session_state:
             if 'vector_store' not in st.session_state:
-                st.session_state.vector_store = get_vector_store()
+                st.session_state['vector_store'] = get_vector_store()
+            st.session_state['crc'] = initialize_crc(st.session_state['vector_store'])
             
-            if 'crc' not in st.session_state:
-                st.session_state.crc = initialize_crc
-            
-            question = st.text_input('Ask a question about lease accounting:', key='user_input_text', placeholder='Type your question here...')
-            st.caption("Press Enter to submit your question. Remember to clear the text box for new questions.")
-            st.divider()
+        question = st.text_input('Ask a question about lease accounting:', key='user_input_text', placeholder='Type your question here...')
+        st.caption("Press Enter to submit your question. Remember to clear the text box for new questions.")
+        st.divider()
 
-            if question and (question != st.session_state.get('last_question', '')):
-                st.session_state.last_question = question #save the last question to session state
-                process_question(question)
-            
-            st.divider()
-            display_final_response_and_history()
+        if question:
+            process_question(question)
         
-        except Exception as e:
-            #add debugging statement
-            st.error(f"An error occurred: {str(e)}")
+        if 'final_response' in st.session_state and 'history' in st.session_state:
+            display_final_response_and_history(st.session_state['final_response'], st.session_state['history'])
+            
+        st.divider()
+        
+    except Exception as e:
+        #add debugging statement
+        st.error(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     main()
