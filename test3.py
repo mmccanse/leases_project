@@ -43,12 +43,17 @@ def get_vector_store():
         )
     
     #initialize embeddings for vector store
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(
+        api_key=openai_api_key,
+        model="text-embedding-3-large"
+    )
     
     #create a vector store with Qdrant and embeddings
-    vector_store = Qdrant(client,
-                          collection_name=st.secrets["QDRANT_COLLECTION_NAME"],
-                          embeddings=embeddings)
+    vector_store = Qdrant(
+        client = client,
+        collection_name = st.secrets["QDRANT_COLLECTION_NAME"],
+        embeddings = embeddings,
+    )
     
     return vector_store
 
