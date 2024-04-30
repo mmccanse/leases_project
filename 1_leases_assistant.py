@@ -22,11 +22,6 @@ OPENAI_MODEL = "gpt-3.5-turbo"
 # Store API key as a variable
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-# define function to clear chat history
-def clear_history():
-    if 'history' in st.session_state:
-        del st.session_state['history']
-
 # Define function to access Qdrant vector store
 def get_vector_store():
     #Create a client to connect to Qdrant server
@@ -55,6 +50,7 @@ context = """You are a leases chatbot. You answer questions relating to ASC 842 
     the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
     important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
     is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
+    If the response refers to an example provided, the response needs to include the full example being referenced.
     The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
     use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
     PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
@@ -67,6 +63,7 @@ def setup_prompt_template():
     the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
     important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
     is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
+    If the response refers to an example provided, the response needs to include the full example being referenced.
     The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
     use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
     PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
@@ -178,13 +175,21 @@ def display_history():
                 st.markdown("**Answer:**")
                 st.write(response)
 
+# define function to clear chat history
+def clear_history():
+    if 'history' in st.session_state:
+        del st.session_state['history']
+    # reset input and answer
+    st.session_state['input'] = ""
+
 # define streamlit app
 def main():
     st.title('ASC 842 AI Assistant')
     st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases under US GAAP.')
     st.divider()
-    st.write('This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
+    st.write('Disclaimer: This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
     st.divider()
+    
     try:
             
         #Initialize history before it is accessed
@@ -204,39 +209,45 @@ def main():
         if 'context' not in st.session_state:
             st.session_state['context'] = context
         
-        input = st.text_area("""Ask questions about lease accounting. The app will remember your conversation
-                              history until you click 'clear history'""", placeholder='Type your question here...')
-        st.caption("Press Control + Enter to submit your question.")
+        #establish 'input_value' so able to clear it
+        # if 'input_value' not in st.session_state:
+        #     st.session_state['input_value'] = ""
+        
+        
+        user_input = st.text_area("""Ask about lease accounting! The app 
+                                  remembers your conversation until you click 'Clear History' in the sidebar""", placeholder='Type your question here...')
+        submit_button = st.button('Submit')
         st.divider()
 
-        if input:
+        if submit_button and user_input:
             with st.spinner("Searching the guidance..."):
                 history_aware_chain = create_history_aware_chain(st.session_state['prompt_template'],st.session_state['vector_store'])
                 documents_chain = create_document_chain((st.session_state['prompt_template']))
                 retrieval_chain_instance = create_retrieve_chain(history_aware_chain, documents_chain)
                 response = retrieval_chain_instance.invoke({
-                    'input': input}) 
+                    'input': user_input}) 
                     # 'context': st.session_state['context'], 
                     # 'chat_history': st.session_state['history']})
-                # response = retrieval_chain_instance.invoke({'input': input})
+                st.markdown(f"**Question:** ")
+                st.write(response['input'])
+                st.markdown(f"**Response:** ")
                 st.write(response['answer'])
-                st.session_state.history.append((input, response['answer']))
+                st.session_state.history.append((user_input, response['answer']))
+                st.session_state['input_value'] = ""
             
-            # st.divider()
-            # st.markdown(f"**Conversation History**")
-            # for prompts in reversed(st.session_state['history']):
-            #     st.markdown(f"**Question:** {prompts[0]}")
-            #     st.markdown(f"**Answer** {prompts[1]}")
-            #     st.divider()
+        with st.sidebar:
+            clear_chat_history = st.button('Clear History')
+            if clear_chat_history:
+                st.session_state['history'] = []
             
-            with st.sidebar:
-                st.subheader(f"**Conversation History**")
-                for idx, (input, response) in enumerate(reversed(st.session_state.history)):
-                    with st.expander(f"Q: {input}"):
-                        st.markdown("**Question:**")
-                        st.write(input)
-                        st.markdown("**Answer:**")
-                        st.write(response)
+            st.subheader(f"**Conversation History**")
+            for idx, (question, answer) in enumerate(reversed(st.session_state.history)):
+                with st.expander(f"Q: {question}"):
+                    st.markdown("**Question:**")
+                    st.write(question)
+                    st.markdown("**Answer:**")
+                    st.write(answer)
+
         
     except Exception as e:
         #add debugging statement
