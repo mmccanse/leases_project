@@ -1,18 +1,7 @@
-ChatOpenAI
-create_history_aware_retriever
-create_retrieval_chain
-create_stuff_documents_chain
-FewShotPromptTemplate
-logging
-OpenAI
-OpenAIEmbeddings
-PromptTemplate
-PyPDFLoader
-python-dotenv
-Qdrant
-qdrant_client
-QdrantClient
-RecursiveCharacterTextSplitter
 streamlit
+langchain
+qdrant_client
+openai
+langchain_openai
 
 
