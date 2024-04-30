@@ -1,7 +1,0 @@
-streamlit
-langchain
-qdrant_client
-openai
-langchain_openai
-
-
