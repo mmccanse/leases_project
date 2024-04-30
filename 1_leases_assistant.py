@@ -184,10 +184,12 @@ def clear_history():
 
 # define streamlit app
 def main():
-    st.title('ASC 842 AI Assistant')
-    st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases under US GAAP.')
+    st.title('Lease Accounting AI Assistant')
+    # st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases under US GAAP.')
     st.divider()
-    st.write('Disclaimer: This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.')
+    st.write('This is a retrieval-assisted chatbot for lease accounting under US GAAP.')
+    st.markdown(f"**Disclaimer:** This assistant cannot give specific accounting advice. It is a learning tool and a proof of concept. It is not intended for commercial use. For accounting advice, please consult an appropriate professional.")
+
     st.divider()
     
     try:
