@@ -6,17 +6,11 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 from langchain_openai import OpenAIEmbeddings
-from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI, OpenAI
 from qdrant_client import QdrantClient, models
 import qdrant_client
-from langchain.chains import (
-    create_history_aware_retriever,
-    create_retrieval_chain,
-)
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -145,7 +139,7 @@ def setup_prompt_template():
     return prompt_template
     
     
-def history_aware_chain(prompt_template,vector_store):    
+def create_history_aware_chain(prompt_template,vector_store):    
     # Create new llm instance
     llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=.1)
     # Set vector_store as retriever
@@ -156,54 +150,24 @@ def history_aware_chain(prompt_template,vector_store):
         llm, 
         retriever,
         prompt_template)
-    return history_aware_chain
+    return history_aware_retriever_chain
     
 
 # create document chain with create_stuff_documents_chain. This 
 # tekes the relevant source segments from the history_aware_retriever
 # and "stuffs" them into (something?) that the retrieval chain will reference.
 
-def document_chain(prompt_template):
+def create_document_chain(prompt_template):
     # Create new llm instance
     llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=.1)
-    document_chain = create_stuff_documents_chain(llm, prompt_template)
-    return document_chain
+    doc_chain = create_stuff_documents_chain(llm, prompt_template)
+    return doc_chain
+    
 
-def retrieval_chain(history_aware_chain, document_chain):
+def create_retrieve_chain(history_aware_chain, document_chain):
     retrieval_chain = create_retrieval_chain(history_aware_chain, document_chain)
     return retrieval_chain
-
-
-def process_question(question,crc,history):
-    try:
-        print("processing question: ", question)
-        print("processing chat history: ", history)
-        response = crc.run({'question':question,'chat_history':st.session_state['history']})
-        if response:
-            # If response is True, return a success message
-            return response
-        else:
-        # If response is False, return an error message
-            return "Error in response"
-    except Exception as e:
-        print("Error during processing:", e)
-        return str(e), "Error"
-        
-        
-def display_final_response_and_history(final_response, history):
-    st.write(final_response)
-    st.divider()
-    st.markdown(f"**Conversation History**")
-    for prompts in reversed(history):
-        st.markdown(f"**Question:** {prompts[0]}")
-        st.markdown(f"**Answer** {prompts[1]}")
-        st.divider
-        
-#this part will go in main function
-
-
-#invoke the retrieval chain, this will go in main function
-response = retrieval_chain.invoke({'input': input})
+    
 
 
 # define streamlit app
@@ -239,17 +203,16 @@ def main():
 
         if input:
             with st.spinner("Searching the guidance..."):
-                if 'document_chain' not in st.session_state:
-                    st.session_state['document_chain'] = document_chain(st.session_state['prompt_template'])
-                st.session_state['history_aware_chain'].invoke({
-                    "chat_history": st.session_state['history'], 
-                    "context": st.session_state['context'],
-                    "input": input})
-                history_aware_chain = history_aware_chain(st.session_state['prompt_template']),st.session_state['vector_store']
-                document_chain = document_chain((st.session_state['prompt_template']))
-                retrieval_chain = retrieval_chain(history_aware_chain, document_chain)
-                response = retrieval_chain.invoke({'input': input})
-                st.write(response)
+                history_aware_chain = create_history_aware_chain(st.session_state['prompt_template'],st.session_state['vector_store'])
+                documents_chain = create_document_chain((st.session_state['prompt_template']))
+                retrieval_chain_instance = create_retrieve_chain(history_aware_chain, documents_chain)
+                response = retrieval_chain_instance.invoke({
+                    'input': input}) 
+                    # 'context': st.session_state['context'], 
+                    # 'chat_history': st.session_state['history']})
+                # response = retrieval_chain_instance.invoke({'input': input})
+                st.write(response['answer'])
+                st.session_state.history.append((input, response['answer']))
             
             st.divider()
             st.markdown(f"**Conversation History**")
