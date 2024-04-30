@@ -239,15 +239,15 @@ def main():
 
         if input:
             with st.spinner("Searching the guidance..."):
-                if 'history_aware' not in st.session_state:
-                    st.session_state['history_aware'] = history_aware_chain(st.session_state['prompt_template'],st.session_state['vector_store'])
                 if 'document_chain' not in st.session_state:
                     st.session_state['document_chain'] = document_chain(st.session_state['prompt_template'])
-                history_aware_retriever_chain.invoke({
+                st.session_state['history_aware_chain'].invoke({
                     "chat_history": st.session_state['history'], 
                     "context": st.session_state['context'],
                     "input": input})
-                
+                history_aware_chain = history_aware_chain(st.session_state['prompt_template']),st.session_state['vector_store']
+                document_chain = document_chain((st.session_state['prompt_template']))
+                retrieval_chain = retrieval_chain(history_aware_chain, document_chain)
                 response = retrieval_chain.invoke({'input': input})
                 st.write(response)
             
