@@ -168,7 +168,15 @@ def create_retrieve_chain(history_aware_chain, document_chain):
     retrieval_chain = create_retrieval_chain(history_aware_chain, document_chain)
     return retrieval_chain
     
-
+def display_history():
+    with st.sidebar:
+        st.subheader("Session History")
+        for idx, (input, response) in enumerate(reversed(st.session_state.history)):
+            with st.expander(f"Q: {input}"):
+                st.markdown("**Question:**")
+                st.write(input)
+                st.markdown("**Answer:**")
+                st.write(response)
 
 # define streamlit app
 def main():
@@ -186,7 +194,7 @@ def main():
         #Initialize vector store
         if 'vector_store' not in st.session_state:
             st.session_state['vector_store'] = get_vector_store()
-            st.success('vector store loaded!')
+            # st.success('vector store loaded!')
         
         #Initialize prompt template
         if 'prompt_template' not in st.session_state:
@@ -196,9 +204,9 @@ def main():
         if 'context' not in st.session_state:
             st.session_state['context'] = context
         
-        input = st.text_input("""Ask questions about lease accounting. The app will remember your conversation
+        input = st.text_area("""Ask questions about lease accounting. The app will remember your conversation
                               history until you click 'clear history'""", placeholder='Type your question here...')
-        st.caption("Press Enter to submit your question.")
+        st.caption("Press Control + Enter to submit your question.")
         st.divider()
 
         if input:
@@ -214,12 +222,21 @@ def main():
                 st.write(response['answer'])
                 st.session_state.history.append((input, response['answer']))
             
-            st.divider()
-            st.markdown(f"**Conversation History**")
-            for prompts in reversed(st.session_state['history']):
-                st.markdown(f"**Question:** {prompts[0]}")
-                st.markdown(f"**Answer** {prompts[1]}")
-                st.divider()
+            # st.divider()
+            # st.markdown(f"**Conversation History**")
+            # for prompts in reversed(st.session_state['history']):
+            #     st.markdown(f"**Question:** {prompts[0]}")
+            #     st.markdown(f"**Answer** {prompts[1]}")
+            #     st.divider()
+            
+            with st.sidebar:
+                st.subheader(f"**Conversation History**")
+                for idx, (input, response) in enumerate(reversed(st.session_state.history)):
+                    with st.expander(f"Q: {input}"):
+                        st.markdown("**Question:**")
+                        st.write(input)
+                        st.markdown("**Answer:**")
+                        st.write(response)
         
     except Exception as e:
         #add debugging statement
