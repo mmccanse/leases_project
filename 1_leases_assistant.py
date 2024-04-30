@@ -210,8 +210,8 @@ def main():
             st.session_state['context'] = context
         
         #establish 'input_value' so able to clear it
-        # if 'input_value' not in st.session_state:
-        #     st.session_state['input_value'] = ""
+        if 'input_value' not in st.session_state:
+            st.session_state['input_value'] = ""
         
         
         user_input = st.text_area("""Ask about lease accounting! The app 
@@ -233,13 +233,14 @@ def main():
                 st.markdown(f"**Response:** ")
                 st.write(response['answer'])
                 st.session_state.history.append((user_input, response['answer']))
-                st.session_state['input_value'] = ""
+                
             
         with st.sidebar:
             clear_chat_history = st.button('Clear History')
             if clear_chat_history:
                 st.session_state['history'] = []
-            
+                st.session_state['input_value'] = ""
+                
             st.subheader(f"**Conversation History**")
             for idx, (question, answer) in enumerate(reversed(st.session_state.history)):
                 with st.expander(f"Q: {question}"):
