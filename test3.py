@@ -56,12 +56,23 @@ def get_vector_store():
     
     return vector_store
 
+# Define context
+context = """You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
+    the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
+    important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
+    is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
+    The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
+    use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
+    PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
+    qualified expert." If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help you 
+    with. Let's get back to lease accounting."""
+
 # Create function to setup prompt template
 def setup_prompt_template():
     prefix="""You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
     the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
     important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
-    is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 843 guidance chapter.
+    is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
     The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
     use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
     PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
@@ -104,7 +115,7 @@ def setup_prompt_template():
             EY - Financial Reporting Developments: Lease Accounting, section 5.6, page 281
             PWC - Leases Guide, section 5.6, page 5-45 
             KPMG - Leases Handbook, section 7.6, page 706
-            ASC: 842-10-25-8 to 25-18, 842-10-35-3 to 35-3 to 35-6, 842-10-55-190 to 55-209""
+            ASC: 842-10-25-8 to 25-18, 842-10-35-3 to 35-3 to 35-6, 842-10-55-190 to 55-209"""
         }
     ]
     
@@ -216,6 +227,10 @@ def main():
         #Initialize prompt template
         if 'prompt_template' not in st.session_state:
             st.session_state['prompt_template'] = setup_prompt_template()
+        
+        #bring context into session state
+        if 'context' not in st.session_state:
+            st.session_state['context'] = context
         
         input = st.text_input("""Ask questions about lease accounting. The app will remember your conversation
                               history until you click 'clear history'""", placeholder='Type your question here...')
