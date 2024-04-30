@@ -184,7 +184,7 @@ def clear_history():
 
 # define streamlit app
 def main():
-    st.title('Lease Accounting AI Assistant - test')
+    st.title('Lease Accounting AI Assistant')
     # st.header('This assistant is preloaded with accounting guidance related to ASC 842 Leases under US GAAP.')
     st.divider()
     st.write('This is a retrieval-assisted chatbot for lease accounting under US GAAP.')
