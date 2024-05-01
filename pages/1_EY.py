@@ -8,7 +8,7 @@ def show_pdf(pdf_url):
 
 def main():
     st.title('PDF Viewer for Document 1')
-    pdf_url = "https://github.com/mmccanse/leases_project/blob/main/pages/1_EY.pdf"  # Update this to your actual PDF URL
+    pdf_url = "https://raw.githubusercontent.com/mmccanse/leases_project/main/pages/1_EY.pdf"  # Update this to your actual PDF URL
     show_pdf(pdf_url)
 
 if __name__ == "__main__":
