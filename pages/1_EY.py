@@ -2,7 +2,7 @@ import streamlit as st
 
 def show_pdf(pdf_url):
     st.markdown(
-        f"<iframe src='{pdf_url}' width='100%' height='600' style='border:none;'></iframe>",
+        f"<iframe src='{pdf_url}' width='90%' height='800' style='border:none;'></iframe>",
         unsafe_allow_html=True
     )
 
@@ -14,16 +14,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# import streamlit as st
-
-# def main():
-#     st.title('PDF Viewer for Document 1')
-#     pdf_url = "https://drive.google.com/drive/folders/1IGq0pA0QQH5HmRU4F937x8hsNPBVXoRb"
-    
-#     st.markdown(
-#         f"View or download the document: [Open PDF]({pdf_url})",
-#         unsafe_allow_html=True
-#     )
-
-# if __name__ == "__main__":
-#     main()
