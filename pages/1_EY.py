@@ -11,7 +11,7 @@ def main():
         <style>
         .title {
             margin-left: -350px;
-            margin-right: -20px;
+            margin-right: -100px;
             overflow-wrap: normal;
         }
         </style>
