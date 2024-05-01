@@ -8,7 +8,7 @@ def show_pdf(pdf_url):
 
 def main():
     st.title('PDF Viewer for Document 1')
-    pdf_url = "https://drive.google.com/file/d/1EF7JuGFy3ujS5iK-DGTXQ_5X_0u4GpTy/view?usp=drive_link"  # Update this to your actual PDF URL
+    pdf_url = "https://drive.google.com/file/d/1EF7JuGFy3ujS5iK-DGTXQ_5X_0u4GpTy/preview"  # Update this to your actual PDF URL
     show_pdf(pdf_url)
 
 if __name__ == "__main__":
