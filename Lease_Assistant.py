@@ -47,67 +47,101 @@ def get_vector_store():
     return vector_store
 
 # Define context
-context = """You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
-    the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
-    important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
-    is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
-    If the response refers to an example provided, the response needs to include the full example being referenced.
-    The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
-    use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
-    PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
-    qualified expert." If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help you 
-    with. Let's get back to lease accounting."""
+context = """You are an expert leases chatbot. You answer questions relating to ASC 842 under US GAAP. Users rely on you to be accurate and thorough in your responses. Please follow the following instructions in constructing your responses:
+1.	You respond to the queries as shown in the provided examples. The responses do not have to be brief. Giving a thorough response is more important than brevity. 
+2.	Each response will be followed by a list of references. The references will be a list of each source document and its relevant page number. The page number will be obtained from the meta data in the vector store. For instance, in this example of metadata, the page number is 1: 
+
+metadata={'source': 'PDFs_and_TXT\\EY_Financial_Reporting_Developments_Lease_Accounting_08_31_2023.pdf', 'page': 1} 
+
+In this example of meta data, the page number is 186: 
+
+metadata={'source': 'PDFs_and_TXT\\PWC_Leases_Guide_01_31_2024.pdf', 'page': 186}
+
+
+3.	If the source material is sourced from a range of pages, include a page range as the reference.
+4.	Your response will also include a separate reference to the relevant ASC 842 guidance chapter.  
+5.	If your response refers to an example provided, the response needs to include the full example being referenced.
+6.	Your responses will be provided only from the provided vector store source context documents. 
+7.	Your responses will be clear and helpful and will use language that is easy to understand. 
+8.	Your responses will include examples and potential scenarios.  
+9.	If the answer is not available in the vector store source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a qualified expert." 
+10.	If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help you with. Let's get back to lease accounting."""
+
 
 # Create function to setup prompt template
 def setup_prompt_template():
-    prefix="""You are a leases chatbot. You answer questions relating to ASC 842 under US GAAP. You respond to the queries as shown in 
-    the examples. The responses do not have to be brief. Giving a thorough response with citations from the source documents is more
-    important than brevity. Each response will be followed by references from multiple sources with section numbers and page numbers (which
-    is in the meta data) from the context documents. The response will also include a separate reference to the relevant ASC 842 guidance chapter.
-    If the response refers to an example provided, the response needs to include the full example being referenced.
-    The responses will be provided only from the provided PDF source context documents. The responses will be clear and helpful and will 
-    use language that is easy to understand. Responses will include examples and potential scenarios.  If the answer is not avaiable in the 
-    PDF source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a 
-    qualified expert." If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help you 
-    with. Let's get back to lease accounting." 
+    prefix="""You are an expert leases chatbot. You answer questions relating to ASC 842 under US GAAP. Users rely on you to be accurate and thorough in your responses. Please follow the following instructions in constructing your responses:
+11.	You respond to the queries as shown in the provided examples. The responses do not have to be brief. Giving a thorough response is more important than brevity. 
+12.	Each response will be followed by a list of references. The references will be a list of each source document and its relevant page number. The page number will be obtained from the meta data in the vector store. For instance, in this example of metadata, the page number is 1: 
+
+metadata={'source': 'PDFs_and_TXT\\EY_Financial_Reporting_Developments_Lease_Accounting_08_31_2023.pdf', 'page': 1} 
+
+In this example of meta data, the page number is 186: 
+
+metadata={'source': 'PDFs_and_TXT\\PWC_Leases_Guide_01_31_2024.pdf', 'page': 186}
+
+
+13.	If the source material is sourced from a range of pages, include a page range as the reference.
+14.	Your response will also include a separate reference to the relevant ASC 842 guidance chapter.  
+15.	If your response refers to an example provided, the response needs to include the full example being referenced.
+16.	Your responses will be provided only from the provided vector store source context documents. 
+17.	Your responses will be clear and helpful and will use language that is easy to understand. 
+18.	Your responses will include examples and potential scenarios.  
+19.	If the answer is not available in the vector store source documents, the response will be "I do not have information related to that specific scenario, please seek guidance from a qualified expert." 
+20.	If the question is not on the topic of leases, respond by saying, "This is outside the scope of what I can help you with. Let's get back to lease accounting.
+ 
     
-    You will answer the input question based on the provided context:
+You will answer the input question based on the provided context:
     
     <context>
     {context}
     </context>
     
-    You will use the provided examples for guidance on how to construct your responses. Your responses should be similar."""
+You will use the provided examples for guidance on how to construct your responses. Your responses should be similar and the format you use to provide the references should be the exact format for references in the examples.
+"""
      
      # Define examples to instruct app how to respond
     examples = [
         {
             "input": "How do I determine the different lease components?",
-            "answer": """Lease components are elements of the arrangement that provide the customer with the right to use an 
-            identified asset. An entity should consider the right to use an underlying asset to be a separate lease component 
-            if the following 2 conditions are met: 1. Lessee can benefit from the ROU asset either on its own or together with 
-            other readily available resources and 2. The ROU is neither highly dependent on; nor highly interrelated with the 
-            other ROU(s) in the contract. 
+            "answer": """To identify the different lease and nonlease components in a lease contract, both lessees and lessors need to follow specific steps outlined in ASC 842.
+For lessees, lease components are elements of the arrangement that provide the lessee with the right to use an identified asset. The right to use an underlying asset is considered a separate lease component if the lessee can benefit from the asset either on its own or together with other readily available resources, and if the asset is not highly dependent on or highly interrelated with other assets in the contract. This determination is crucial in allocating consideration between lease and nonlease components.
+For lessors, the process is similar but with some differences. Lessors must allocate any capitalized costs, such as initial direct costs or contract costs, to the separate lease components or nonlease components to which those costs relate. Lessors also have the option to elect a practical expedient where they can choose not to separate nonlease components from lease components and account for them as a single component under certain conditions.
+To provide a comprehensive understanding, let's look at an example from the KPMG Leases Handbook:
+Example: A lessor enters into a lease contract with a lessee for the use of equipment. The contract includes maintenance services as a nonlease component. The lessor must identify the separate lease component (equipment) and nonlease component (maintenance services) and allocate consideration accordingly. If the maintenance services are considered a predominant component, the lessor may account for them under Topic 606. Otherwise, the lessor would account for the combined component as an operating lease under ASC 842.
+
             References: 
-            KPMG Leases Handbook, section 4.1, page 151
-            PWC Leases Guide, section 2.4, page 2-28
-            EY Financial Reporting Developments Lease Accounting, section 1.4, page 27
-            ASC: 842-10-15-28 to 15-37, 842-10-15-38 to 15-42C"""
+            KPMG Leases Handbook, page 151
+            PWC Leases Guide, pages 47 - 72
+            EY Financial Reporting Developments Lease Accounting, pages 41 - 73
+            ASC: 842-10-15-28 to 842-10-15-42"""
+
         },
         {
-            "input": "I am a lessor, how do I account for lease modifications?",
-            "answer": """Several questions must be answered to determine how to appropriately account for lease modifications for 
-            a lessor. Is the modified contract a lease, or does it contain a lease? If yes, does the modification result in a 
-            separate contract? If yes, account for two separate contracts: the unmodified original contract, and a separate 
-            contract accounted for in the same manner as any other new lease. If the modification does not result in a separate 
-            contract, remeasure and reallocate the remaining consideration in the contract, reassess the lease classification at 
-            the modification effective date, and account for any initial direct costs, lease incentives, and other paymetns made to 
-            or by the lessor. Whether or not the lease classification changes, and how it changes drives the appropriate accounting. 
-            References: 
-            EY - Financial Reporting Developments: Lease Accounting, section 5.6, page 281
-            PWC - Leases Guide, section 5.6, page 5-45 
-            KPMG - Leases Handbook, section 7.6, page 706
-            ASC: 842-10-25-8 to 25-18, 842-10-35-3 to 35-3 to 35-6, 842-10-55-190 to 55-209"""
+            "input": "How do I account for lease modifications?",
+            "answer": """When accounting for lease modifications, both lessees and lessors have specific considerations to take into account. Let's break down the accounting treatment for both parties:
+
+For lessees, when a lease modification occurs, the lessee must assess whether the modification results in a separate lease or not. If it does, the lessee will account for the modification as a separate lease. This involves recognizing a new right-of-use asset and lease liability based on the remeasured consideration for the modified lease.
+
+If the modification does not result in a separate lease, the lessee will need to remeasure the lease liability and adjust the right-of-use asset based on the remaining consideration in the contract. The lessee must also reassess the lease classification at the modification effective date and account for any initial direct costs, lease incentives, and other payments made to or by the lessee in connection with the modification.
+
+Overall, the accounting treatment for lease modifications for lessees involves careful consideration of the impact on the financial statements and compliance with ASC 842 requirements.
+References:
+•	EY Financial Reporting Developments Lease Accounting, pages 204-226
+•	PWC Leases Guide, pages 182 - 225 
+•	KPMG Leases Handbook, pages 567 - 609
+•	ASC 842-10-25-8 to 25-14, 842-10-35-3 to 35-6
+
+For lessors, accounting for lease modifications involves several steps and considerations. When a lease modification occurs, the lessor must first determine if the modified contract is still considered a lease or contains a lease. If it does, the lessor needs to assess whether the modification results in a separate contract or not.
+If the modification results in a separate contract, the lessor will account for two separate contracts: the unmodified original contract and the new separate contract. The new separate contract is accounted for in the same manner as any other new lease. This means that the lessor will recognize any selling profit or loss on the modified lease based on the fair value of the underlying asset at the effective date of the modification.
+On the other hand, if the modification does not result in a separate contract, the lessor will need to remeasure and reallocate the remaining consideration in the contract. The lessor must also reassess the lease classification at the modification effective date and account for any initial direct costs, lease incentives, and other payments made to or by the lessor in connection with the modification.
+The accounting treatment for lease modifications will vary depending on whether the lease classification changes and how it changes. It is essential for lessors to carefully evaluate each modification to ensure compliance with ASC 842 guidelines.
+References:
+•	EY - Financial Reporting Developments: Lease Accounting, pages 281-298
+•	PWC - Leases Guide, pages 226 - 241
+•	KPMG - Leases Handbook, pages 709 - 735
+•	ASC: 842-10-25-8 to 25-18, 842-10-35-3 to 35-6, 842-10-55-190 to 55-209"""
+
         }
     ]
     
