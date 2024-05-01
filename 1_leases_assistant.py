@@ -12,6 +12,7 @@ import qdrant_client
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
+from streamlit_extras.stylable_container import stylable_container
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -111,7 +112,7 @@ def setup_prompt_template():
     ]
     
     #Define format for examples:
-    example_format = "\nQuestin: {input}\n\nAnswer: {answer}"
+    example_format = "\nQuestion: {input}\n\nAnswer: {answer}"
     
     example_prompts = [example_format.format(**ex) for ex in examples]
     
@@ -181,6 +182,19 @@ def clear_history():
         del st.session_state['history']
     # reset input and answer
     st.session_state['input'] = ""
+    
+def submit_button():
+    with stylable_container(
+        key="sub",
+        css_styles="""
+            button {
+                background-color: #530c3a;
+                color: #000000;
+                border-radius: 20px;
+                }
+                """
+    ) as container:
+        return st.button("Submit")   
 
 # define streamlit app
 def main():
@@ -218,7 +232,8 @@ def main():
         
         user_input = st.text_area("""Ask about lease accounting! The app 
                                   remembers your conversation until you click 'Clear History' in the sidebar""", placeholder='Type your question here...')
-        submit_button = st.button('Submit')
+        submit_button()
+        # submit_button = st.button('Submit')
         st.divider()
 
         if submit_button and user_input:
