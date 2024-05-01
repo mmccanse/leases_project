@@ -7,7 +7,17 @@ def show_pdf(pdf_url):
     )
 
 def main():
-    st.title('PDF Viewer for Document 1')
+        st.markdown("""
+        <style>
+        .title {
+            margin-left: -200px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<h1 class="title">EY Financial Reporting Developments: Lease Accounting</h1>', unsafe_allow_html=True)
+    
+    # st.title('PDF Viewer for Document 1')
     pdf_url = "https://drive.google.com/file/d/1EF7JuGFy3ujS5iK-DGTXQ_5X_0u4GpTy/preview"  # Update this to your actual PDF URL
     show_pdf(pdf_url)
 
