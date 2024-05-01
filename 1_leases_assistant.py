@@ -196,12 +196,14 @@ def submit_button():
     ) as container:
         return st.button("Submit") 
 
+# dark pink button color: #a81875
+
 def clear_button():
     with stylable_container(
         key="clr",
         css_styles="""
             button {
-                background-color: #a81875;
+                background-color: #0e1b22;
                 color: #ffffff;
                 border-radius: 20px;
                 }
