@@ -11,6 +11,8 @@ def main():
         <style>
         .title {
             margin-left: -350px;
+            margin-right: -20px;
+            overflow-wrap: normal;
         }
         </style>
     """, unsafe_allow_html=True)
