@@ -7,7 +7,7 @@ def show_pdf(pdf_url):
     )
 
 def main():
-        st.markdown("""
+    st.markdown("""
         <style>
         .title {
             margin-left: -200px;
