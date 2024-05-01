@@ -157,7 +157,7 @@ def create_history_aware_chain(prompt_template,vector_store):
 
 def create_document_chain(prompt_template):
     # Create new llm instance
-    llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=.1)
+    llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=0.0)
     doc_chain = create_stuff_documents_chain(llm, prompt_template)
     return doc_chain
     
