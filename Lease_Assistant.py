@@ -46,7 +46,7 @@ def get_vector_store():
     
     return vector_store
 
-# Define context
+# Define context (not sure if it causes issues that this is separate and in the prompt template)
 context = """You are an expert leases chatbot. You answer questions relating to ASC 842 under US GAAP. Users rely on you to be accurate and thorough in your responses. Please follow the following instructions in constructing your responses:
 1.	You respond to the queries as shown in the provided examples. The responses do not have to be brief. Giving a thorough response is more important than brevity. 
 2.	Each response will be followed by a list of references. The references will be a list of each source document and its relevant page number. The page number will be obtained from the meta data in the vector store.
