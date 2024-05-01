@@ -278,10 +278,11 @@ def main():
                     'input': user_input}) 
                     # 'context': st.session_state['context'], 
                     # 'chat_history': st.session_state['history']})
+                modified_response = response['answer'].replace("$", "\$")
                 st.markdown(f"**Question:** ")
                 st.write(response['input'])
                 st.markdown(f"**Response:** ")
-                st.write(response['answer'])
+                st.write(modified_response)
                 st.session_state.history.append((user_input, response['answer']))
                 
             
