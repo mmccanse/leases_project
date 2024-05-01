@@ -2,7 +2,7 @@ import streamlit as st
 
 def show_pdf(pdf_url):
     st.markdown(
-        f"<iframe src='{pdf_url}' width='130%' height='800' style='border:none;'></iframe>",
+        f"<iframe src='{pdf_url}' width='130%' height='600' style='border:none;'></iframe>",
         unsafe_allow_html=True
     )
 
