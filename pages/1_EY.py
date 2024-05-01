@@ -10,7 +10,7 @@ def main():
     st.markdown("""
         <style>
         .title {
-            margin-left: -200px;
+            margin-left: -275px;
         }
         </style>
     """, unsafe_allow_html=True)
