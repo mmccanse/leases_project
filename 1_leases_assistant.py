@@ -188,7 +188,7 @@ def submit_button():
         key="sub",
         css_styles="""
             button {
-                background-color: #a81875;
+                background-color: #b94691;
                 color: #ffffff;
                 border-radius: 20px;
                 }
