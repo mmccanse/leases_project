@@ -139,7 +139,7 @@ def setup_prompt_template():
     
 def create_history_aware_chain(prompt_template,vector_store):    
     # Create new llm instance
-    llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=.1)
+    llm = ChatOpenAI(api_key=openai_api_key, model=OPENAI_MODEL, temperature=0.0)
     # Set vector_store as retriever
     retriever = vector_store.as_retriever()
     # create history aware retriever that will retrieve relevant 
