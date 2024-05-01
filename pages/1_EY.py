@@ -18,7 +18,7 @@ import streamlit as st
 
 def main():
     st.title('PDF Viewer for Document 1')
-    pdf_url = "https://raw.githubusercontent.com/mmccanse/leases_project/main/pages/1_EY.pdf"
+    pdf_url = "https://drive.google.com/drive/folders/1IGq0pA0QQH5HmRU4F937x8hsNPBVXoRb"
     
     st.markdown(
         f"View or download the document: [Open PDF]({pdf_url})",
