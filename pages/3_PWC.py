@@ -10,7 +10,7 @@ def main():
     st.markdown("""
         <style>
         .title {
-            margin-left: -300px;
+            margin-left: -200px;
             margin-right: -100px;
             overflow-wrap: normal;
         }
