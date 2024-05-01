@@ -188,13 +188,26 @@ def submit_button():
         key="sub",
         css_styles="""
             button {
-                background-color: #b94691;
+                background-color: #a81875;
                 color: #ffffff;
                 border-radius: 20px;
                 }
                 """
     ) as container:
-        return st.button("Submit")   
+        return st.button("Submit") 
+
+def clear_button():
+    with stylable_container(
+        key="clr",
+        css_styles="""
+            button {
+                background-color: #a81875;
+                color: #ffffff;
+                border-radius: 20px;
+                }
+                """
+    ) as container:
+        return st.button("Clear History")   
 
 # define streamlit app
 def main():
@@ -253,7 +266,7 @@ def main():
                 
             
         with st.sidebar:
-            clear_chat_history = st.button('Clear History')
+            clear_chat_history = clear_button()
             if clear_chat_history:
                 st.session_state['history'] = []
                 st.session_state['input_value'] = ""
